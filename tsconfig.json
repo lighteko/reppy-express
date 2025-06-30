@@ -16,11 +16,8 @@
     "noEmit": false,
     "baseUrl": "./",
     "paths": {
-      "@middlewares/*": ["src/middlewares/*"],
       "@lib/*": ["lib/*"],
-      "@src/*": ["src/*"],
-      "@user/*": ["src/user/*"],
-      "@common/*": ["src/common/*"]
+      "@src/*": ["src/*"]
     },
     "outDir": "./dist",
     "experimentalDecorators": true

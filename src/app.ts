@@ -1,14 +1,19 @@
-import express, { Request, Response, NextFunction } from "express";
-import { BaseConfig } from "@lib/config";
+import express, {Request, Response, NextFunction} from "express";
+import {BaseConfig} from "@lib/config";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import initLogger from "@src/logger";
+import Supabase from "@lib/infra/supabase";
+import OpenAIClient from "@lib/infra/openai";
 
 
 function createApp() {
     const app = express();
 
     new BaseConfig(app);
+    Supabase.initApp(app);
+    OpenAIClient.initApp(app);
+
     app.set("trust proxy", true);
     app.use(express.json());
     app.use(cookieParser());
