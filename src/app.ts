@@ -5,6 +5,7 @@ import cookieParser from "cookie-parser";
 import initLogger from "@src/logger";
 import DB from "@lib/infra/postgres";
 import OpenAIClient from "@lib/infra/openai";
+import authRoutes from "@src/auth/routes";
 
 
 function createApp() {
@@ -51,6 +52,10 @@ function createApp() {
         next();
     });
 
+    app.get("/", (req: Request, res: Response) => {
+        res.redirect("/health");
+    })
+
     app.get("/health", (_req: Request, res: Response) => {
         res.status(200).send({
             health: "healthy",
@@ -58,6 +63,7 @@ function createApp() {
     });
 
     // Public routes
+    app.use("/auth", authRoutes());
 
     // Protected routes
 

@@ -13,6 +13,7 @@ interface DBConfig {
     PG_PASSWORD: string;
     PG_DB: string;
     PG_POOL_SIZE: number;
+    PG_SCHEMA: string;
 }
 
 class DB {
@@ -24,6 +25,7 @@ class DB {
         PG_PASSWORD: "postgres",
         PG_DB: "template",
         PG_POOL_SIZE: 10,
+        PG_SCHEMA: "",
     };
     private static pool: Pool | null = null;
     private static initialized = false;
@@ -36,6 +38,7 @@ class DB {
             PG_PASSWORD,
             PG_DB,
             PG_POOL_SIZE,
+            PG_SCHEMA,
         } = app.get("config");
 
         DB.config = {
@@ -45,6 +48,7 @@ class DB {
             PG_PASSWORD,
             PG_DB,
             PG_POOL_SIZE,
+            PG_SCHEMA,
         };
 
         if (!DB.pool) {
@@ -87,6 +91,7 @@ class DB {
         }
 
         const client: PoolClient = await DB.pool.connect();
+        await client.query(`SET search_path TO ${DB.config.PG_SCHEMA}`)
         try {
             if (isTransactionRequired) await client.query("BEGIN");
 
@@ -100,7 +105,7 @@ class DB {
             return response;
         } catch (err: any) {
             if (isTransactionRequired) await client.query("ROLLBACK");
-            logger.error(sqlFormat(statements.map(s => s.text).join(";\n")));
+            logger.error(sqlFormat(statements.map(s => s.text).join(";\n"), { language: "postgresql" }));
             logger.error(err);
             throw err;
         } finally {
