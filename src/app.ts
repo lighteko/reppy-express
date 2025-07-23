@@ -4,16 +4,15 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import initLogger from "@src/logger";
 import DB from "@lib/infra/postgres";
-import OpenAIClient from "@lib/infra/openai";
 import authRoutes from "@src/auth/routes";
-
+import onboardingRoutes from "@src/onboarding/routes";
+import routinesRoutes from "@src/routines/routes";
 
 function createApp() {
     const app = express();
 
     new BaseConfig(app);
     DB.initApp(app);
-    OpenAIClient.initApp(app);
 
     app.set("trust proxy", true);
     app.use(express.json());
@@ -66,7 +65,8 @@ function createApp() {
     app.use("/auth", authRoutes());
 
     // Protected routes
-
+    app.use("/onboarding", onboardingRoutes());
+    app.use("/routines", routinesRoutes());
 
     return app;
 }
