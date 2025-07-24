@@ -1,5 +1,5 @@
 import { ChatsDAO } from "@src/chats/dao/dao";
-import { CreateChatDTO } from "@src/chats/dto/dto";
+import { CreateChatDTO, GetChatsWithCursorDTO } from "@src/chats/dto/dto";
 import { Row } from "@lib/infra/postgres";
 
 export class ChatsService {
@@ -15,6 +15,14 @@ export class ChatsService {
 
     async getChatById(msgId: string): Promise<Row> {
         return await this.dao.getChatById(msgId);
+    }
+
+    async getChatsWithCursor(inputData: GetChatsWithCursorDTO): Promise<Row[]> {
+        return await this.dao.getChatsWithCursor(inputData);
+    }
+
+    async get50Chats(userId: string): Promise<Row[]> {
+        return await this.dao.get50Chats(userId);
     }
 
     async deleteChat(msgId: string): Promise<void> {

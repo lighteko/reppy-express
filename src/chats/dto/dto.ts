@@ -1,4 +1,5 @@
-import { IsEnum, IsNotEmpty, IsString } from "class-validator";
+import { IsArray, IsDateString, IsEnum, IsString, IsUUID, ValidateNested } from "class-validator";
+import { Type } from "class-transformer";
 
 export enum SenderType {
     USER = "USER",
@@ -6,39 +7,46 @@ export enum SenderType {
 }
 
 export class CreateChatDTO {
-    @IsNotEmpty()
-    @IsString()
+    @IsUUID()
     userId!: string;
 
-    @IsNotEmpty()
     @IsString()
     @IsEnum(SenderType)
     senderType!: SenderType;
 
-    @IsNotEmpty()
     @IsString()
     message!: string;
 }
 
-export class ChatResponseDTO {
-    @IsNotEmpty()
-    @IsString()
-    msgId!: string;
-
-    @IsNotEmpty()
-    @IsString()
+export class GetChatsWithCursorDTO {
+    @IsUUID()
     userId!: string;
 
-    @IsNotEmpty()
+    @IsDateString()
+    createdAt!: string;
+}
+
+export class ChatResponseDTO {
+    @IsUUID()
+    msgId!: string;
+
+    @IsUUID()
+    userId!: string;
+
     @IsString()
     @IsEnum(SenderType)
     senderType!: SenderType;
 
-    @IsNotEmpty()
     @IsString()
     message!: string;
 
-    @IsNotEmpty()
-    @IsString()
+    @IsDateString()
     createdAt!: string;
+}
+
+export class MultipleChatResponseDTO {
+    @IsArray()
+    @ValidateNested({ each: true })
+    @Type(() => ChatResponseDTO)
+    chats!: ChatResponseDTO[];
 }
