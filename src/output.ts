@@ -1,24 +1,11 @@
-import { validate } from "class-validator";
-import { ClassConstructor, plainToClass } from "class-transformer";
 import { Response } from "express";
 
 export function send(
     res: Response,
     code: number,
-    data: object,
-    dto: ClassConstructor<unknown> | null = null
+    data: object
 ) {
-    if (!dto) return res.status(code).json({ data });
-
-    try {
-        const classInstance = plainToClass(dto, data);
-        validate(classInstance as object).then(errors => {
-            if (errors.length) throw new Error("Validation failed");
-            res.status(code).json({ data });
-        });
-    } catch (e: any) {
-        abort(res, 500, String(e));
-    }
+    return res.status(code).json({ data });
 }
 
 export function sendTokens(
