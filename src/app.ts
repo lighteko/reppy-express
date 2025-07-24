@@ -7,6 +7,10 @@ import DB from "@lib/infra/postgres";
 import authRoutes from "@src/auth/routes";
 import onboardingRoutes from "@src/onboarding/routes";
 import routinesRoutes from "@src/routines/routes";
+import feedbackRoutes from "@src/feedbacks/routes";
+import adminRoutes from "@src/admin/routes";
+import exerciseRoutes from "@src/exercises/routes";
+import chatRoutes from "@src/chats/routes";
 
 function createApp() {
     const app = express();
@@ -67,6 +71,12 @@ function createApp() {
     // Protected routes
     app.use("/onboarding", onboardingRoutes());
     app.use("/routines", routinesRoutes());
+    app.use("/feedbacks", feedbackRoutes());
+    app.use("/exercises", exerciseRoutes());
+    app.use("/chats", chatRoutes());
+
+    // Admin routes
+    app.use("/admin", adminRoutes());
 
     return app;
 }
