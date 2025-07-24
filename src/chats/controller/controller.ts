@@ -1,6 +1,5 @@
 import { ChatsService } from "@src/chats/service/service";
 import { Request, Response } from "express";
-import { plainToInstance } from "class-transformer";
 import { ChatResponseDTO, CreateChatDTO, GetChatsWithCursorDTO, MultipleChatResponseDTO } from "@src/chats/dto/dto";
 import { abort, send } from "@src/output";
 import { ValidationError } from "@lib/errors";
