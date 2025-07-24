@@ -137,4 +137,3 @@ class DB {
 export default DB;
 
 export type Row = QueryResult | null;
-export type Rows = QueryResult[];
