@@ -20,6 +20,7 @@
       "@src/*": ["src/*"]
     },
     "outDir": "./dist",
+    "emitDecoratorMetadata": true,
     "experimentalDecorators": true
   },
   "include": ["src/**/*.ts", "main.ts", "lib/**/*.ts", "public/**/*.*"],

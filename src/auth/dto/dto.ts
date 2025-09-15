@@ -9,7 +9,7 @@ import {
     IsDateString,
     MaxLength
 } from "class-validator";
-import { IsDouble } from "@lib/validators/isdouble";
+import { IsDouble } from "@lib/utils/validators";
 
 export class TokenPayloadDTO {
     @IsUUID()

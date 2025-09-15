@@ -13,7 +13,7 @@ export class BaseConfig {
     static PG_DB = process.env.PG_DB || "";
     static PG_POOL_SIZE = process.env.PG_POOL_SIZE || "";
     static PG_SCHEMA = process.env.PG_SCHEMA || "";
-    static OPENAI_API_KEY = process.env.OPENAI_API_KEY || "";
+    static ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "";
 
     constructor(app: Express) {
         BaseConfig.initApp(app);
@@ -28,7 +28,7 @@ export class BaseConfig {
             PG_DB: this.PG_DB,
             PG_POOL_SIZE: this.PG_POOL_SIZE,
             PG_SCHEMA: this.PG_SCHEMA,
-            OPENAI_API_KEY: this.OPENAI_API_KEY,
+            ADMIN_PASSWORD: this.ADMIN_PASSWORD,
         });
 
         console.log("App configuration initialized.");

@@ -1,5 +1,6 @@
 import { Router } from "express";
-import { ExerciseController, EquipmentController } from "@src/admin/controller/controller";
+import { ExerciseController, EquipmentController, LoginController } from "@src/admin/controller/controller";
+import { adminMiddleware } from "@src/middlewares";
 
 
 export default function adminRoutes() {
@@ -7,10 +8,14 @@ export default function adminRoutes() {
 
     const exerciseController = new ExerciseController();
     const equipmentController = new EquipmentController();
+    const loginController = new LoginController();
 
     // Admin Routes
-    router.post("/exercises", exerciseController.post);
-    router.post("/exercises/equipments", equipmentController.post);
+    router.post("/exercises", adminMiddleware, exerciseController.post);
+    router.post("/equipments", adminMiddleware, equipmentController.post);
+    router.get("/exercises", adminMiddleware, exerciseController.get);
+    router.get("/equipments", adminMiddleware, equipmentController.get);
+    router.get("/login", loginController.get);
 
     return router;
 }

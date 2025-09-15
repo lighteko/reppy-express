@@ -34,9 +34,10 @@ export function clearTokens(
 export function abort(
     res: Response,
     code: number,
-    description: string
+    description: string,
 ) {
+    console.error(description);
     return res.status(code).json({
-        data: { message: description }
+        data: { message: code === 500 ? "Internal Server Error" : description },
     });
 }

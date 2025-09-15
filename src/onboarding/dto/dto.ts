@@ -9,7 +9,7 @@ import {
     Matches, Min,
     ValidateNested
 } from "class-validator";
-import { Is24Hour, IsDouble } from "@lib/validators/validators";
+import { Is24Hour, IsDouble } from "@lib/utils/validators";
 import { Type } from "class-transformer";
 
 export enum Sex {

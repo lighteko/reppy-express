@@ -18,7 +18,8 @@ export const authenticate = (
     }
 
     if (!token) {
-        return abort(res, 401, "Authentication required");
+        abort(res, 401, "Authentication required");
+        return;
     }
 
     try {
@@ -33,6 +34,6 @@ export const authenticate = (
         next();
     } catch (error) {
         console.error(error);
-        return abort(res, 401, "Invalid or expired token");
+        abort(res, 401, "Invalid or expired token");
     }
 };

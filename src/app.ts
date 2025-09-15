@@ -55,9 +55,9 @@ function createApp() {
         next();
     });
 
-    app.get("/", (req: Request, res: Response) => {
+    app.get("/", (_req: Request, res: Response) => {
         res.redirect("/health");
-    })
+    });
 
     app.get("/health", (_req: Request, res: Response) => {
         res.status(200).send({

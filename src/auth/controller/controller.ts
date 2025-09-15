@@ -3,6 +3,7 @@ import { Request, Response } from "express";
 import { plainToInstance } from "class-transformer";
 import { SignUpWithOAuthDTO, SignUpWithPasswordDTO } from "@src/auth/dto/dto";
 import { abort, send } from "@src/output";
+import { DuplicateError } from "@lib/errors";
 
 export class GeneralAuthController {
     private service: AuthService;
@@ -17,7 +18,7 @@ export class GeneralAuthController {
             await this.service.signUpWithPassword(instance);
             send(res, 200, { message: "User created successfully." });
         } catch (e: any) {
-            if (e instanceof Error && e.message === "User already exists.") {
+            if (e instanceof DuplicateError) {
                 abort(res, 409, e.message);
             }
             if (e instanceof AggregateError) {
@@ -41,7 +42,7 @@ export class OAuthBasedAuthController {
             await this.service.signUpWithOAuth(req.body);
             send(res, 200, { message: "User created successfully." });
         } catch (e: any) {
-            if (e instanceof Error && e.message === "User already exists.") {
+            if (e instanceof DuplicateError) {
                 abort(res, 409, e.message);
             }
             abort(res, 500, String(e));

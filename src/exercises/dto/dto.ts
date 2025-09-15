@@ -1,5 +1,5 @@
 import { IsEnum, IsNumber, IsOptional, IsString, IsUUID } from "class-validator";
-import { IsDouble, RequiredIf, ValidatePair } from "@lib/validators/validators";
+import { IsDouble, RequiredIf, ValidatePair } from "@lib/utils/validators";
 import { ExerciseType, StrategyType } from "@src/admin/dto/dto";
 
 export class CreateSetStrategyDTO {

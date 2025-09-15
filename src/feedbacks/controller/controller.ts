@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { FeedbackService } from "@src/feedbacks/service/service";
 import { abort, send } from "@src/output";
 import { ValidationError } from "@lib/errors";
-import { validateDTO } from "@lib/validate/validate-dto";
+import { validateInput } from "@lib/validate";
 import { CreateFeedbackDTO } from "@src/feedbacks/dto/dto";
 
 abstract class BaseController {
@@ -12,7 +12,7 @@ abstract class BaseController {
 export class FeedbackController extends BaseController {
     post = async (req: Request, res: Response) => {
         try {
-            const dto = await validateDTO(CreateFeedbackDTO, req.body);
+            const dto = await validateInput(CreateFeedbackDTO, req.body);
             await this.service.createFeedback(dto);
             send(res, 201, { message: "Feedback created successfully" });
         } catch (e: unknown) {

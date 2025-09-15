@@ -1,3 +1,4 @@
+import 'reflect-metadata';
 import createApp from "@src/app";
 
 function main() {

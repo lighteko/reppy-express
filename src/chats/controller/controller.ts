@@ -3,7 +3,7 @@ import { Request, Response } from "express";
 import { ChatResponseDTO, CreateChatDTO, GetChatsWithCursorDTO, MultipleChatResponseDTO } from "@src/chats/dto/dto";
 import { abort, send } from "@src/output";
 import { ValidationError } from "@lib/errors";
-import { validateDTO } from "@lib/validate/validate-dto";
+import { validateInput } from "@lib/validate";
 
 abstract class BaseController {
     protected service = new ChatsService();
@@ -12,7 +12,7 @@ abstract class BaseController {
 export class ChatsController extends BaseController {
     post = async (req: Request, res: Response) => {
         try {
-            const dto = await validateDTO(CreateChatDTO, req.body);
+            const dto = await validateInput(CreateChatDTO, req.body);
             await this.service.createChat(dto);
             send(res, 201, { message: "Chat created successfully." });
         } catch (e: unknown) {
@@ -27,21 +27,13 @@ export class ChatsController extends BaseController {
     get = async (req: Request, res: Response) => {
         try {
             const msgId = req.params.id;
-            if (msgId === null) {
-                abort(res, 400, "Missing required parameter 'msgId'");
-            }
+            if (msgId === null) abort(res, 400, "Missing required parameter 'msgId'");
             const chat = await this.service.getChatById(msgId);
-            if (chat === null) {
-                abort(res, 404, "Chat not found.");
-            }
-            await validateDTO(ChatResponseDTO, chat);
+            if (chat === null) abort(res, 404, "Chat not found.");
+            await validateInput(ChatResponseDTO, chat);
             send(res, 200, { chat });
         } catch (e: unknown) {
-            if (e instanceof ValidationError) {
-                abort(res, 400, String(e));
-            } else {
-                abort(res, 500, String(e));
-            }
+            abort(res, 500, String(e));
         }
     };
 
@@ -71,14 +63,14 @@ export class ChatsWithCursorController extends BaseController {
                 createdAt: req.query.createdAt,
             };
             if (inputData.createdAt !== null) {
-                const dto = await validateDTO(GetChatsWithCursorDTO, inputData);
+                const dto = await validateInput(GetChatsWithCursorDTO, inputData);
                 const chats = await this.service.getChatsWithCursor(dto);
-                await validateDTO(MultipleChatResponseDTO, chats);
+                await validateInput(MultipleChatResponseDTO, chats);
                 send(res, 200, { chats });
             } else {
                 if (!inputData.userId) abort(res, 400, "Missing required parameter 'userId'");
                 const chats = await this.service.get50Chats(inputData.userId);
-                await validateDTO(MultipleChatResponseDTO, chats);
+                await validateInput(MultipleChatResponseDTO, chats);
                 send(res, 200, { chats });
             }
         } catch (e: unknown) {
