@@ -1,5 +1,5 @@
 import { AdminDAO } from "@src/admin/dao/dao";
-import { CreateEquipmentSchema, CreateExerciseSchema, GetEquipmentsSchema, GetExercisesSchema } from "@src/admin/dto/dto";
+import { CreateEquipmentDTO, CreateExerciseDTO, GetEquipmentsDTO, GetExercisesDTO } from "@src/admin/dto/dto";
 import { Row } from "@lib/infra/postgres";
 
 export class AdminService {
@@ -9,19 +9,19 @@ export class AdminService {
         this.dao = new AdminDAO();
     }
 
-    async getEquipments(inputData: GetEquipmentsSchema): Promise<Row[]> {
+    async getEquipments(inputData: GetEquipmentsDTO): Promise<Row[]> {
         return await this.dao.getEquipments(inputData.locale);
     }
 
-    async getExercises(inputData: GetExercisesSchema): Promise<Row[]> {
+    async getExercises(inputData: GetExercisesDTO): Promise<Row[]> {
         return await this.dao.getExercises(inputData.locale);
     }
 
-    async createEquipment(inputData: CreateEquipmentSchema): Promise<void> {
+    async createEquipment(inputData: CreateEquipmentDTO): Promise<void> {
         await this.dao.createEquipment(inputData);
     }
 
-    async createExercise(inputData: CreateExerciseSchema): Promise<void> {
+    async createExercise(inputData: CreateExerciseDTO): Promise<void> {
         await this.dao.createExercise(inputData);
     }
 
