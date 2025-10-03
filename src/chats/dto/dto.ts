@@ -1,52 +1,32 @@
-import { IsArray, IsDateString, IsEnum, IsString, IsUUID, ValidateNested } from "class-validator";
-import { Type } from "class-transformer";
+import { z } from "zod";
 
-export enum SenderType {
-    USER = "USER",
-    AI = "AI"
-}
+export const SenderTypeSchema = z.enum(["USER", "AI"]);
 
-export class CreateChatDTO {
-    @IsUUID()
-    userId!: string;
+export const CreateChatSchema = z.object({
+    userId: z.uuid(),
+    senderType: SenderTypeSchema,
+    message: z.string(),
+});
 
-    @IsString()
-    @IsEnum(SenderType)
-    senderType!: SenderType;
+export const GetChatsWithCursorSchema = z.object({
+    userId: z.uuid(),
+    createdAt: z.string().datetime(),
+});
 
-    @IsString()
-    message!: string;
-}
+export const ChatResponseSchema = z.object({
+    msgId: z.uuid(),
+    userId: z.uuid(),
+    senderType: SenderTypeSchema,
+    message: z.string(),
+    createdAt: z.string().datetime(),
+});
 
-export class GetChatsWithCursorDTO {
-    @IsUUID()
-    userId!: string;
+export const MultipleChatResponseSchema = z.object({
+    chats: z.array(ChatResponseSchema),
+});
 
-    @IsDateString()
-    createdAt!: string;
-}
-
-export class ChatResponseDTO {
-    @IsUUID()
-    msgId!: string;
-
-    @IsUUID()
-    userId!: string;
-
-    @IsString()
-    @IsEnum(SenderType)
-    senderType!: SenderType;
-
-    @IsString()
-    message!: string;
-
-    @IsDateString()
-    createdAt!: string;
-}
-
-export class MultipleChatResponseDTO {
-    @IsArray()
-    @ValidateNested({ each: true })
-    @Type(() => ChatResponseDTO)
-    chats!: ChatResponseDTO[];
-}
+export type SenderType = z.infer<typeof SenderTypeSchema>;
+export type CreateChatDTO = z.infer<typeof CreateChatSchema>;
+export type GetChatsWithCursorDTO = z.infer<typeof GetChatsWithCursorSchema>;
+export type ChatResponseDTO = z.infer<typeof ChatResponseSchema>;
+export type MultipleChatResponseDTO = z.infer<typeof MultipleChatResponseSchema>;

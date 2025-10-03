@@ -1,23 +1,24 @@
 import { z } from "zod";
 import { partialExcept } from "@lib/utils";
+import { zodLocale } from "@lib/utils/validators";
 
 const EquipmentSchema = z.object({
-    equipmentId: z.uuidv4(),
+    equipmentId: z.uuid(),
     equipmentGroup: z.enum(["FREE_WEIGHT", "MACHINE", "BODY_WEIGHT", "AUXILIARY"]),
     equipmentName: z.string(),
     description: z.string(),
-    locale: z.regex(/^[a-z]{2,3}(-[A-Za-z0-9]{2,8})*$/),
+    locale: zodLocale,
 });
 
 const ExerciseSchema = z.object({
-    exerciseId: z.uuidv4(),
-    equipmentId: z.uuidv4(),
+    exerciseId: z.uuid(),
+    equipmentId: z.uuid(),
     exerciseName: z.string(),
     exerciseType: z.enum(["CARDIO", "WEIGHT", "STRETCH"]),
     targetMuscles: z.string(),
     instruction: z.string(),
     difficultyLvl: z.int(),
-    locale: z.regex(/^[a-z]{2,3}(-[A-Za-z0-9]{2,8})*$/)
+    locale: zodLocale
 });
 
 export const CreateEquipmentSchema = EquipmentSchema.omit({ equipmentId: true });

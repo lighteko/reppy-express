@@ -1,101 +1,48 @@
-import {
-    ArrayMinSize,
-    IsArray,
-    IsBoolean,
-    IsDateString,
-    IsEnum, IsNumber,
-    IsString,
-    IsUUID,
-    Matches, Min,
-    ValidateNested
-} from "class-validator";
-import { Is24Hour, IsDouble } from "@lib/utils/validators";
-import { Type } from "class-transformer";
+import { z } from "zod";
+import { zodDouble, zod24Hour } from "@lib/utils/validators";
 
-export enum Sex {
-    MALE = "MALE",
-    FEMALE = "FEMALE",
-    N_A = "N/A"
-}
+export const SexSchema = z.enum(["MALE", "FEMALE", "N/A"]);
 
-export class CreateUserBioDTO {
-    @IsUUID()
-    userId!: string;
+export const CreateUserBioSchema = z.object({
+    userId: z.uuid(),
+    sex: SexSchema,
+    height: zodDouble,
+    bodyWeight: zodDouble,
+    birthdate: z.string().datetime(),
+});
 
-    @IsEnum(Sex)
-    sex!: Sex;
+export const CreateUserPreferencesSchema = z.object({
+    userId: z.uuid(),
+    unitSystem: z.string().regex(/^[cm][in]-[kg][lb]$/),
+    notifReminder: z.boolean(),
+    locale: z.string().regex(/^[a-z]{2}-[A-Z]{2}$/),
+});
 
-    @IsDouble()
-    height!: number;
+export const CreateUserEquipmentsSchema = z.object({
+    equipmentIds: z.array(z.uuid()).min(1),
+    userId: z.uuid(),
+});
 
-    @IsDouble()
-    bodyWeight!: number;
+export const WeekDaysSchema = z.enum(["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"]);
 
-    @IsDateString()
-    birthdate!: string;
-}
+export const ActiveDaysSchema = z.object({
+    weekday: WeekDaysSchema,
+    startTime: zod24Hour,
+    maxDuration: z.number().min(1),
+});
 
-export class CreateUserPreferencesDTO {
-    @IsUUID()
-    userId!: string;
+export const CreatePlanSchema = z.object({
+    userId: z.uuid(),
+    startDate: z.string().datetime(),
+    goalDate: z.string().datetime(),
+    goal: z.string(),
+    activeDays: z.array(ActiveDaysSchema),
+});
 
-    @Matches(/^[cm][in]-[kg][lb]$/)
-    unitSystem!: string;
-
-    @IsBoolean()
-    notifReminder!: boolean;
-
-    @Matches(/^[a-z]{2}-[A-Z]{2}$/)
-    locale!: string;
-}
-
-export class CreateUserEquipmentsDTO {
-    @IsArray()
-    @ArrayMinSize(1)
-    @IsUUID("4", { each: true })
-    equipmentIds!: string[];
-
-    @IsUUID()
-    userId!: string;
-}
-
-export enum WeekDays {
-    SUN = "SUN",
-    MON = "MON",
-    TUE = "TUE",
-    WED = "WED",
-    THU = "THU",
-    FRI = "FRI",
-    SAT = "SAT"
-}
-
-export class ActiveDaysDTO {
-    @IsEnum(WeekDays)
-    weekday!: WeekDays;
-
-    @Is24Hour()
-    startTime!: string;
-
-    @IsNumber()
-    @Min(1)
-    maxDuration!: number;
-}
-
-export class CreatePlanDTO {
-    @IsUUID()
-    userId!: string;
-
-    @IsDateString()
-    startDate!: string;
-
-    @IsDateString()
-    goalDate!: string;
-
-    @IsString()
-    goal!: string;
-
-    @IsArray()
-    @ValidateNested({ each: true })
-    @Type(() => ActiveDaysDTO)
-    activeDays!: ActiveDaysDTO[];
-}
+export type Sex = z.infer<typeof SexSchema>;
+export type CreateUserBioDTO = z.infer<typeof CreateUserBioSchema>;
+export type CreateUserPreferencesDTO = z.infer<typeof CreateUserPreferencesSchema>;
+export type CreateUserEquipmentsDTO = z.infer<typeof CreateUserEquipmentsSchema>;
+export type WeekDays = z.infer<typeof WeekDaysSchema>;
+export type ActiveDaysDTO = z.infer<typeof ActiveDaysSchema>;
+export type CreatePlanDTO = z.infer<typeof CreatePlanSchema>;

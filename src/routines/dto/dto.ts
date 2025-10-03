@@ -1,70 +1,33 @@
-import {
-    ArrayMinSize,
-    IsArray,
-    IsDateString,
-    IsNumber,
-    IsOptional,
-    IsString,
-    IsUUID,
-    ValidateNested
-} from "class-validator";
-import { Type } from "class-transformer";
-import { ActiveDaysDTO } from "@src/onboarding/dto/dto";
+import { z } from "zod";
+import { ActiveDaysSchema } from "@src/onboarding/dto/dto";
 
-export class UpdatePlanDTO {
-    @IsUUID()
-    planId!: string;
+export const UpdatePlanSchema = z.object({
+    planId: z.uuid(),
+    userId: z.uuid(),
+    startDate: z.string().datetime().optional(),
+    goalDate: z.string().datetime().optional(),
+    goal: z.string().optional(),
+});
 
-    @IsUUID()
-    userId!: string;
+export const UpdateScheduleSchema = z.object({
+    userId: z.uuid(),
+    activeDays: z.array(ActiveDaysSchema).min(1),
+});
 
-    @IsDateString()
-    @IsOptional()
-    startDate?: string;
+export const RoutineSchema = z.object({
+    exerciseSetId: z.uuid(),
+    scheduleId: z.uuid(),
+    duration: z.number(),
+    setBreak: z.number(),
+    executionOrder: z.number(),
+});
 
-    @IsDateString()
-    @IsOptional()
-    goalDate?: string;
+export const RefreshRoutinesSchema = z.object({
+    userId: z.uuid(),
+    routines: z.array(RoutineSchema),
+});
 
-    @IsString()
-    @IsOptional()
-    goal?: string;
-}
-
-export class UpdateScheduleDTO {
-    @IsUUID()
-    userId!: string;
-
-    @IsArray()
-    @ArrayMinSize(1)
-    @ValidateNested({ each: true })
-    @Type(() => ActiveDaysDTO)
-    activeDays!: ActiveDaysDTO[];
-}
-
-export class RoutineDTO {
-    @IsUUID()
-    exerciseSetId!: string;
-
-    @IsUUID()
-    scheduleId!: string;
-
-    @IsNumber()
-    duration!: number;
-
-    @IsNumber()
-    setBreak!: number;
-
-    @IsNumber()
-    executionOrder!: number;
-}
-
-export class RefreshRoutinesDTO {
-    @IsUUID()
-    userId!: string;
-
-    @IsArray()
-    @ValidateNested({ each: true })
-    @Type(() => RoutineDTO)
-    routines!: RoutineDTO[];
-}
+export type UpdatePlanDTO = z.infer<typeof UpdatePlanSchema>;
+export type UpdateScheduleDTO = z.infer<typeof UpdateScheduleSchema>;
+export type RoutineDTO = z.infer<typeof RoutineSchema>;
+export type RefreshRoutinesDTO = z.infer<typeof RefreshRoutinesSchema>;

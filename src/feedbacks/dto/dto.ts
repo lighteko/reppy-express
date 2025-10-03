@@ -1,21 +1,13 @@
-import { IsEnum, IsString, IsUUID } from "class-validator";
+import { z } from "zod";
 
-export enum SentimentType {
-    POSITIVE = "POSITIVE",
-    NEGATIVE = "NEGATIVE",
-    NEUTRAL = "NEUTRAL"
-}
+export const SentimentTypeSchema = z.enum(["POSITIVE", "NEGATIVE", "NEUTRAL"]);
 
-export class CreateFeedbackDTO {
-    @IsUUID()
-    userId!: string;
+export const CreateFeedbackSchema = z.object({
+    userId: z.uuid(),
+    mapId: z.uuid(),
+    sentiment: SentimentTypeSchema,
+    feedbackText: z.string(),
+});
 
-    @IsUUID()
-    mapId!: string;
-
-    @IsEnum(SentimentType)
-    sentiment!: SentimentType;
-
-    @IsString()
-    feedbackText!: string;
-}
+export type SentimentType = z.infer<typeof SentimentTypeSchema>;
+export type CreateFeedbackDTO = z.infer<typeof CreateFeedbackSchema>;

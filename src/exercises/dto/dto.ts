@@ -1,75 +1,54 @@
-import { IsEnum, IsNumber, IsOptional, IsString, IsUUID } from "class-validator";
-import { IsDouble, RequiredIf, ValidatePair } from "@lib/utils/validators";
-import { ExerciseType, StrategyType } from "@src/admin/dto/dto";
+import { z } from "zod";
+import { zodDouble, zodValidatePair } from "@lib/utils/validators";
 
-export class CreateSetStrategyDTO {
-    @IsUUID()
-    userId!: string;
+// Define enums locally since they're not exported from admin module
+export const StrategyTypeSchema = z.enum(["TIMED", "REPS", "MIXED"]);
+export const ExerciseTypeSchema = z.enum(["CARDIO", "WEIGHT", "STRETCH"]);
 
-    @IsString()
-    strategyName!: string;
+const BaseCreateSetStrategySchema = z.object({
+    userId: z.uuid(),
+    strategyName: z.string(),
+    strategyType: StrategyTypeSchema,
+    baseWeight: zodDouble.optional(),
+    weightFactor: zodDouble.optional(),
+    baseReps: z.number().optional(),
+    repsFactor: zodDouble.optional(),
+    baseRest: z.number().optional(),
+    restFactor: zodDouble.optional(),
+    duration: z.number().optional(),
+    description: z.string(),
+});
 
-    @IsEnum(StrategyType)
-    strategyType!: StrategyType;
+// Apply paired field validations
+export const CreateSetStrategySchema = zodValidatePair(
+    zodValidatePair(
+        zodValidatePair(BaseCreateSetStrategySchema, "baseWeight", "weightFactor"),
+        "baseReps", "repsFactor"
+    ),
+    "baseRest", "restFactor"
+).refine(
+    (data) => {
+        if (data.strategyType === "TIMED") {
+            return data.duration !== undefined && data.duration !== null;
+        }
+        return true;
+    },
+    {
+        message: "duration is required when strategyType is 'TIMED'",
+        path: ["duration"]
+    }
+);
 
-    @IsDouble()
-    @IsOptional()
-    @ValidatePair("weightFactor")
-    baseWeight?: number;
+export const CreateExerciseRecordSchema = z.object({
+    userId: z.uuid(),
+    mapId: z.uuid(),
+    exerciseType: ExerciseTypeSchema,
+    completedSets: z.number().optional(),
+    maxWeight: zodDouble.optional(),
+    maxDuration: z.number().optional(),
+});
 
-    @IsDouble()
-    @IsOptional()
-    @ValidatePair("baseWeight")
-    weightFactor?: number;
-
-    @IsNumber()
-    @IsOptional()
-    @ValidatePair("repsFactor")
-    baseReps?: number;
-
-    @IsDouble()
-    @IsOptional()
-    @ValidatePair("baseReps")
-    repsFactor?: number;
-
-    @IsNumber()
-    @IsOptional()
-    @ValidatePair("restFactor")
-    baseRest?: number;
-
-    @IsDouble()
-    @IsOptional()
-    @ValidatePair("baseRest")
-    restFactor?: number;
-
-    @IsNumber()
-    @IsOptional()
-    @RequiredIf("strategyType", "TIMED")
-    duration?: number;
-
-    @IsString()
-    description!: string;
-}
-
-export class CreateExerciseRecordDTO {
-    @IsUUID()
-    userId!: string;
-
-    @IsUUID()
-    mapId!: string;
-
-    @IsEnum(ExerciseType)
-    exerciseType!: ExerciseType;
-
-    @IsNumber()
-    @IsOptional()
-    completedSets?: number;
-
-    @IsDouble()
-    @IsOptional()
-    maxWeight?: number;
-
-    @IsNumber()
-    @IsOptional()
-    maxDuration?: number;
-}
+export type StrategyType = z.infer<typeof StrategyTypeSchema>;
+export type ExerciseType = z.infer<typeof ExerciseTypeSchema>;
+export type CreateSetStrategyDTO = z.infer<typeof CreateSetStrategySchema>;
+export type CreateExerciseRecordDTO = z.infer<typeof CreateExerciseRecordSchema>;

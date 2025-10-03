@@ -1,106 +1,60 @@
-import {
-    IsEmail,
-    IsEnum,
-    IsOptional,
-    IsString,
-    MinLength,
-    IsUUID,
-    IsInt,
-    IsDateString,
-    MaxLength
-} from "class-validator";
-import { IsDouble } from "@lib/utils/validators";
+import { z } from "zod";
+import { zodDouble } from "@lib/utils/validators";
 
-export class TokenPayloadDTO {
-    @IsUUID()
-    userId!: string;
+export const TokenPayloadSchema = z.object({
+    userId: z.uuid(),
+    email: z.email(),
+    iat: z.int().optional(),
+    exp: z.int().optional(),
+});
 
-    @IsEmail()
-    email!: string;
+export const OAuthProviderSchema = z.enum(["google", "apple"]);
 
-    @IsInt()
-    @IsOptional()
-    iat?: number;
+const BaseSignUpSchema = z.object({
+    username: z.string(),
+    email: z.email(),
+});
 
-    @IsInt()
-    @IsOptional()
-    exp?: number;
-}
+export const SignUpWithPasswordSchema = BaseSignUpSchema.extend({
+    password: z.string().min(8),
+});
 
-enum OAuthProvider {
-    GOOGLE = "google",
-    APPLE = "apple",
-}
+export const SignUpWithOAuthSchema = BaseSignUpSchema.extend({
+    provider: OAuthProviderSchema,
+    sub: z.string(),
+});
 
-class BaseSignUpDTO {
-    @IsString()
-    username!: string;
+export const EmailVerificationSchema = z.object({
+    userId: z.uuid(),
+    username: z.string(),
+    email: z.email(),
+});
 
-    @IsEmail()
-    email!: string;
-}
+export const LoginResponseSchema = z.object({
+    userId: z.uuid(),
+    username: z.string(),
+    email: z.email(),
+});
 
-export class SignUpWithPasswordDTO extends BaseSignUpDTO {
-    @IsString()
-    @MinLength(8)
-    password!: string;
-}
+export const PersonalInfoSchema = z.object({
+    userId: z.uuid(),
+    height: zodDouble,
+    bodyWeight: zodDouble,
+    birthDate: z.iso.datetime(),
+    sex: z.string().max(1),
+});
 
-export class SignUpWithOAuthDTO extends BaseSignUpDTO {
-    @IsEnum(OAuthProvider)
-    provider!: OAuthProvider;
+export const FullUserProfileSchema = PersonalInfoSchema.extend({
+    username: z.string(),
+    email: z.email(),
+    age: z.int(),
+});
 
-    @IsString()
-    sub!: string;
-}
-
-export class EmailVerificationDTO {
-    @IsUUID()
-    userId!: string;
-
-    @IsString()
-    username!: string;
-
-    @IsEmail()
-    email!: string;
-}
-
-export class LoginResponseDTO {
-    @IsUUID()
-    userId!: string;
-
-    @IsString()
-    username!: string;
-
-    @IsEmail()
-    email!: string;
-}
-
-export class PersonalInfoDTO {
-    @IsUUID()
-    userId!: string;
-
-    @IsDouble()
-    height!: number;
-
-    @IsDouble()
-    bodyWeight!: number;
-
-    @IsDateString()
-    birthDate!: string;
-
-    @IsString()
-    @MaxLength(1)
-    sex!: string;
-}
-
-export class FullUserProfileDTO extends PersonalInfoDTO {
-    @IsString()
-    username!: string;
-
-    @IsEmail()
-    email!: string;
-
-    @IsInt()
-    age!: number;
-}
+export type TokenPayloadDTO = z.infer<typeof TokenPayloadSchema>;
+export type OAuthProvider = z.infer<typeof OAuthProviderSchema>;
+export type SignUpWithPasswordDTO = z.infer<typeof SignUpWithPasswordSchema>;
+export type SignUpWithOAuthDTO = z.infer<typeof SignUpWithOAuthSchema>;
+export type EmailVerificationDTO = z.infer<typeof EmailVerificationSchema>;
+export type LoginResponseDTO = z.infer<typeof LoginResponseSchema>;
+export type PersonalInfoDTO = z.infer<typeof PersonalInfoSchema>;
+export type FullUserProfileDTO = z.infer<typeof FullUserProfileSchema>;
