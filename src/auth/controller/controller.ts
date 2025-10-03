@@ -1,9 +1,9 @@
 import { AuthService } from "@src/auth/service/service";
 import { Request, Response } from "express";
-import { plainToInstance } from "class-transformer";
-import { SignUpWithOAuthDTO, SignUpWithPasswordDTO } from "@src/auth/dto/dto";
+import { SignUpWithOAuthSchema, SignUpWithPasswordSchema } from "@src/auth/dto/dto";
 import { abort, send } from "@src/output";
-import { DuplicateError } from "@lib/errors";
+import { DuplicateError, ValidationError } from "@lib/errors";
+import { validateInput } from "@lib/validate";
 
 export class GeneralAuthController {
     private service: AuthService;
@@ -14,17 +14,20 @@ export class GeneralAuthController {
 
     post = async (req: Request, res: Response) => {
         try {
-            const instance = plainToInstance(SignUpWithPasswordDTO, req.body);
-            await this.service.signUpWithPassword(instance);
+            const dto = validateInput(SignUpWithPasswordSchema, req.body);
+            await this.service.signUpWithPassword(dto);
             send(res, 200, { message: "User created successfully." });
         } catch (e: any) {
             if (e instanceof DuplicateError) {
                 abort(res, 409, e.message);
-            }
-            if (e instanceof AggregateError) {
+            } else if (e instanceof ValidationError) {
+                abort(res, 400, String(e));
+            } else if (e instanceof AggregateError) {
                 console.error(e.errors);
+                abort(res, 500, String(e));
+            } else {
+                abort(res, 500, String(e));
             }
-            abort(res, 500, String(e));
         }
     };
 }
@@ -38,14 +41,17 @@ export class OAuthBasedAuthController {
 
     post = async (req: Request, res: Response) => {
         try {
-            const instance = plainToInstance(SignUpWithOAuthDTO, req.body);
-            await this.service.signUpWithOAuth(req.body);
+            const dto = validateInput(SignUpWithOAuthSchema, req.body);
+            await this.service.signUpWithOAuth(dto);
             send(res, 200, { message: "User created successfully." });
         } catch (e: any) {
             if (e instanceof DuplicateError) {
                 abort(res, 409, e.message);
+            } else if (e instanceof ValidationError) {
+                abort(res, 400, String(e));
+            } else {
+                abort(res, 500, String(e));
             }
-            abort(res, 500, String(e));
         }
     }
 }

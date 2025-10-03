@@ -1,6 +1,6 @@
 import { ChatsService } from "@src/chats/service/service";
 import { Request, Response } from "express";
-import { ChatResponseDTO, CreateChatDTO, GetChatsWithCursorDTO, MultipleChatResponseDTO } from "@src/chats/dto/dto";
+import { ChatResponseSchema, CreateChatSchema, GetChatsWithCursorSchema, MultipleChatResponseSchema } from "@src/chats/dto/dto";
 import { abort, send } from "@src/output";
 import { ValidationError } from "@lib/errors";
 import { validateInput } from "@lib/validate";
@@ -12,7 +12,7 @@ abstract class BaseController {
 export class ChatsController extends BaseController {
     post = async (req: Request, res: Response) => {
         try {
-            const dto = await validateInput(CreateChatDTO, req.body);
+            const dto = validateInput(CreateChatSchema, req.body);
             await this.service.createChat(dto);
             send(res, 201, { message: "Chat created successfully." });
         } catch (e: unknown) {
@@ -30,7 +30,7 @@ export class ChatsController extends BaseController {
             if (msgId === null) abort(res, 400, "Missing required parameter 'msgId'");
             const chat = await this.service.getChatById(msgId);
             if (chat === null) abort(res, 404, "Chat not found.");
-            await validateInput(ChatResponseDTO, chat);
+            validateInput(ChatResponseSchema, chat);
             send(res, 200, { chat });
         } catch (e: unknown) {
             abort(res, 500, String(e));
@@ -63,14 +63,14 @@ export class ChatsWithCursorController extends BaseController {
                 createdAt: req.query.createdAt,
             };
             if (inputData.createdAt !== null) {
-                const dto = await validateInput(GetChatsWithCursorDTO, inputData);
+                const dto = validateInput(GetChatsWithCursorSchema, inputData);
                 const chats = await this.service.getChatsWithCursor(dto);
-                await validateInput(MultipleChatResponseDTO, chats);
+                validateInput(MultipleChatResponseSchema, chats);
                 send(res, 200, { chats });
             } else {
                 if (!inputData.userId) abort(res, 400, "Missing required parameter 'userId'");
                 const chats = await this.service.get50Chats(inputData.userId);
-                await validateInput(MultipleChatResponseDTO, chats);
+                validateInput(MultipleChatResponseSchema, chats);
                 send(res, 200, { chats });
             }
         } catch (e: unknown) {
