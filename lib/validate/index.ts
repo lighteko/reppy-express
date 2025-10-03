@@ -2,7 +2,7 @@ import { z } from "zod";
 import { ValidationError } from "@lib/errors";
 import { InternalServerError } from "@lib/errors";
 
-export function validateInput<T extends z.ZodTypeAny>(schema: z.ZodTypeAny, data: unknown): T {
+export function validateInput<T extends z.ZodTypeAny>(schema: T, data: unknown): z.infer<T> {
     const parseResult = schema.safeParse(data);
     if (!parseResult.success) {
         const errorTree = z.treeifyError(parseResult.error);
@@ -12,10 +12,10 @@ export function validateInput<T extends z.ZodTypeAny>(schema: z.ZodTypeAny, data
             throw new ValidationError(errString);
         }
     }
-    return parseResult.data as T;
+    return parseResult.data as z.infer<T>;
 }
 
-export function validateOutput<T extends z.ZodTypeAny>(schema: z.ZodTypeAny, data: unknown): void {
+export function validateOutput<T extends z.ZodTypeAny>(schema: T, data: unknown): void {
     const parseResult = schema.safeParse(data);
     if (!parseResult.success) {
         const errorTree = z.treeifyError(parseResult.error);
