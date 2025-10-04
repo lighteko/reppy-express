@@ -4,9 +4,13 @@ import { abort, send } from "@src/output";
 import { ValidationError } from "class-validator";
 import { validateInput, validateOutput } from "@lib/validate";
 import {
+    CreateMuscleSchema,
     CreateEquipmentSchema,
     CreateExerciseSchema,
-    EquipmentsResponseSchema, ExercisesResponseSchema,
+    MusclesResponseSchema,
+    EquipmentsResponseSchema, 
+    ExercisesResponseSchema,
+    GetMusclesSchema,
     GetEquipmentsSchema,
     GetExercisesSchema
 } from "@src/admin/dto/dto";
@@ -16,6 +20,40 @@ import initLogger from "@src/logger";
 abstract class BaseController {
     protected service = new AdminService();
     protected logger = initLogger("debug");
+}
+
+export class MuscleController extends BaseController {
+    post = async (req: Request, res: Response) => {
+        try {
+            const dto = validateInput(CreateMuscleSchema, req.body);
+            await this.service.createMuscle(dto);
+            send(res, 201, { message: "Muscle created successfully" });
+        } catch (e: unknown) {
+            if (e instanceof ValidationError) {
+                abort(res, 400, String(e));
+            } else {
+                abort(res, 500, String(e));
+            }
+        }
+    };
+
+    get = async (req: Request, res: Response) => {
+        try {
+            if (!req.query.locale) abort(res, 400, "Locale not provided");
+            const locale = req.query.locale as string;
+            const dto = validateInput(GetMusclesSchema, { locale });
+            const payload = await this.service.getMuscles(dto);
+            validateOutput(MusclesResponseSchema, payload);
+            send(res, 200, payload);
+        } catch (e: unknown) {
+            if (e instanceof InternalServerError) {
+                this.logger.error(e);
+                abort(res, 500, "Internal Error Occurred");
+            } else if (e instanceof ValidationError) {
+                abort(res, 400, String(e));
+            }
+        }
+    };
 }
 
 export class EquipmentController extends BaseController {
