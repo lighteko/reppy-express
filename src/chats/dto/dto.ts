@@ -1,11 +1,11 @@
 import { z } from "zod";
 
-export const SenderTypeSchema = z.enum(["USER", "AI"]);
+export const SenderTypeSchema = z.enum(["USER", "REPPY"]);
 
 export const CreateChatSchema = z.object({
     userId: z.uuid(),
     senderType: SenderTypeSchema,
-    message: z.string(),
+    content: z.string(),
 });
 
 export const GetChatsWithCursorSchema = z.object({
@@ -14,10 +14,10 @@ export const GetChatsWithCursorSchema = z.object({
 });
 
 export const ChatResponseSchema = z.object({
-    msgId: z.uuid(),
+    messageId: z.uuid(),
     userId: z.uuid(),
     senderType: SenderTypeSchema,
-    message: z.string(),
+    content: z.string(),
     createdAt: z.string().datetime(),
 });
 

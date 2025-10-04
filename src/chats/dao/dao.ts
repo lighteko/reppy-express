@@ -11,30 +11,30 @@ export class ChatsDAO {
     }
 
     async createChat(inputData: CreateChatDTO): Promise<void> {
-        const msgId = uuid4();
+        const messageId = uuid4();
         const query = SQL`
             INSERT INTO repy_chat_message_l
-                (msg_id, user_id, sender_type, message)
-            VALUES (${msgId},
+                (message_id, user_id, sender_type, content)
+            VALUES (${messageId},
                     ${inputData.userId},
                     ${inputData.senderType},
-                    ${inputData.message});
+                    ${inputData.content});
         `;
 
         const cursor = this.db.cursor();
         await cursor.execute(query);
     }
 
-    async getChatById(msgId: string): Promise<Row> {
+    async getChatById(messageId: string): Promise<Row> {
         const query = SQL`
             SELECT
-                msg_id as msgId,
-                user_id as userId,
-                sender_type as senderType,
-                message as message,
-                created_at as createdAt
+                message_id as "messageId",
+                user_id as "userId",
+                sender_type as "senderType",
+                content as "content",
+                created_at as "createdAt"
             FROM repy_chat_message_l
-            WHERE msg_id = ${msgId};
+            WHERE message_id = ${messageId};
         `;
 
         const cursor = this.db.cursor();
@@ -44,11 +44,11 @@ export class ChatsDAO {
     async getChatsWithCursor(inputData: GetChatsWithCursorDTO): Promise<Row[]> {
         const query = SQL`
             SELECT
-                msg_id as msgId,
-                user_id as userId,
-                sender_type as senderType,
-                message as message,
-                created_at as createdAt
+                message_id as "messageId",
+                user_id as "userId",
+                sender_type as "senderType",
+                content as "content",
+                created_at as "createdAt"
             FROM repy_chat_message_l
             WHERE user_id = ${inputData.userId}
             AND created_at < ${inputData.createdAt}
@@ -63,11 +63,11 @@ export class ChatsDAO {
     async get50Chats(userId: string): Promise<Row[]> {
         const query = SQL`
             SELECT
-                msg_id as msgId,
-                user_id as userId,
-                sender_type as senderType,
-                message as message,
-                created_at as createdAt
+                message_id as "messageId",
+                user_id as "userId",
+                sender_type as "senderType",
+                content as "content",
+                created_at as "createdAt"
             FROM repy_chat_message_l
             WHERE user_id = ${userId}
             ORDER BY created_at DESC
@@ -78,11 +78,11 @@ export class ChatsDAO {
         return await cursor.fetchAll(query);
     }
 
-    async deleteChat(msgId: string): Promise<void> {
+    async deleteChat(messageId: string): Promise<void> {
         const query = SQL`
             DELETE
             FROM repy_chat_message_l
-            WHERE msg_id = ${msgId};
+            WHERE message_id = ${messageId};
         `;
 
         const cursor = this.db.cursor();
