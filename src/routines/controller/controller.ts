@@ -27,8 +27,12 @@ export class RoutineController extends BaseController {
     patch = async (req: Request, res: Response) => {
         try {
             const dto = validateInput(UpdateRoutineSchema, req.body);
-            await this.service.updateRoutine(dto);
-            send(res, 200, { message: "Routine updated successfully" });
+            const newRoutineId = await this.service.updateRoutine(dto);
+            send(res, 200, { 
+                message: "Routine updated successfully", 
+                newRoutineId,
+                note: "A new routine has been created with your changes. The old routine persists for version history."
+            });
         } catch (e: unknown) {
             if (e instanceof ValidationError) {
                 abort(res, 400, String(e));

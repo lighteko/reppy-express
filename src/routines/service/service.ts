@@ -12,8 +12,8 @@ export class RoutineService {
         return await this.dao.createRoutine(inputData);
     }
 
-    async updateRoutine(inputData: UpdateRoutineDTO): Promise<void> {
-        await this.dao.updateRoutine(inputData);
+    async updateRoutine(inputData: UpdateRoutineDTO): Promise<string> {
+        return await this.dao.updateRoutine(inputData);
     }
 
     async updateProgram(inputData: UpdateProgramDTO): Promise<void> {

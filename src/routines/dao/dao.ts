@@ -1,8 +1,27 @@
 import DB from "@lib/infra/postgres";
 import { CreateRoutineDTO, UpdateRoutineDTO, UpdateProgramDTO, UpdateScheduleDTO } from "@src/routines/dto/dto";
-import SQL from "sql-template-strings";
+import SQL, { SQLStatement } from "sql-template-strings";
 import { v4 as uuid4 } from "uuid";
 
+/**
+ * RoutinesDAO - Implements immutable version control for routines
+ * 
+ * Version Control Strategy:
+ * - Routines are IMMUTABLE - they are never modified, only created
+ * - Each change creates a NEW version and a NEW routine
+ * - All routines from the previous version are copied to the new version
+ * - The modified routine is replaced with a new routine containing the changes
+ * - Old versions and routines persist for complete history tracking
+ * 
+ * Version Flow:
+ * 1. User creates/updates a routine
+ * 2. System fetches all routines from current version
+ * 3. System creates new version (marks old as not current)
+ * 4. System creates new routine with changes
+ * 5. System links all old routines + new routine to new version via repy_version_routine_map
+ * 
+ * This ensures complete version history while maintaining referential integrity.
+ */
 export class RoutinesDAO {
     private db: DB;
 
@@ -11,6 +30,19 @@ export class RoutinesDAO {
     }
 
     async createRoutine(inputData: CreateRoutineDTO): Promise<string> {
+        const cursor = this.db.cursor();
+
+        // Get all routines from the current version
+        const currentRoutinesQuery = SQL`
+            SELECT vrm.routine_id
+            FROM repy_version_l v
+            JOIN repy_version_routine_map vrm ON v.version_id = vrm.version_id
+            WHERE v.user_id = ${inputData.userId}
+              AND v.is_current = TRUE;
+        `;
+        const currentRoutines = await cursor.fetchAll(currentRoutinesQuery);
+
+        // Create the new routine
         const routineId = uuid4();
         const routineQuery = SQL`
             INSERT INTO repy_routine_l
@@ -21,7 +53,8 @@ export class RoutinesDAO {
                     ${inputData.routineName});
         `;
 
-        const mapRows = inputData.plans.map((plan) => SQL`
+        // Create routine-plan mappings for the new routine
+        const planMapRows = inputData.plans.map((plan) => SQL`
             (
                 ${uuid4()},             -- map_id
                 ${routineId},           -- routine_id
@@ -30,89 +63,174 @@ export class RoutinesDAO {
             )
         `);
 
-        const mapValues = SQL``;
-        mapRows.forEach((row, index) => {
-            if (index > 0) mapValues.append(SQL`, `);
-            mapValues.append(SQL`${row}`);
+        const planMapValues = SQL``;
+        planMapRows.forEach((row, index) => {
+            if (index > 0) planMapValues.append(SQL`, `);
+            planMapValues.append(SQL`${row}`);
         });
 
-        const mapQuery = SQL`
+        const planMapQuery = SQL`
             INSERT INTO repy_routine_plan_map
                 (map_id, routine_id, plan_id, exec_order)
-            VALUES ${mapValues};
+            VALUES ${planMapValues};
         `;
 
-        // Create or update version
+        // Disable current version
         const versionDisableQuery = SQL`
             UPDATE repy_version_l
             SET is_current = FALSE
             WHERE user_id = ${inputData.userId};
         `;
 
+        // Create new version
         const versionId = uuid4();
         const versionQuery = SQL`
             INSERT INTO repy_version_l (version_id, user_id, is_current)
             VALUES (${versionId}, ${inputData.userId}, TRUE);
         `;
 
+        // Build version-routine mappings: all old routines + new routine
+        const allRoutineIds = [
+            ...currentRoutines.map((r: any) => r.routine_id),
+            routineId
+        ];
+
+        const versionRoutineRows = allRoutineIds.map((rId) => SQL`
+            (${versionId}, ${rId})
+        `);
+
+        const versionRoutineValues = SQL``;
+        versionRoutineRows.forEach((row, index) => {
+            if (index > 0) versionRoutineValues.append(SQL`, `);
+            versionRoutineValues.append(SQL`${row}`);
+        });
+
         const versionRoutineMapQuery = SQL`
             INSERT INTO repy_version_routine_map (version_id, routine_id)
-            VALUES (${versionId}, ${routineId});
+            VALUES ${versionRoutineValues};
         `;
 
-        const cursor = this.db.cursor();
-        await cursor.execute(routineQuery, mapQuery, versionDisableQuery, versionQuery, versionRoutineMapQuery);
+        await cursor.execute(routineQuery, planMapQuery, versionDisableQuery, versionQuery, versionRoutineMapQuery);
         return routineId;
     }
 
-    async updateRoutine(inputData: UpdateRoutineDTO): Promise<void> {
-        // Update routine name if provided
-        if (inputData.routineName) {
-            const updateQuery = SQL`
-                UPDATE repy_routine_l
-                SET routine_name = ${inputData.routineName}
-                WHERE routine_id = ${inputData.routineId}
-                  AND user_id = ${inputData.userId};
-            `;
-            const cursor = this.db.cursor();
-            await cursor.execute(updateQuery);
+    async updateRoutine(inputData: UpdateRoutineDTO): Promise<string> {
+        const cursor = this.db.cursor();
+
+        // Get all routines from the current version
+        const currentRoutinesQuery = SQL`
+            SELECT vrm.routine_id
+            FROM repy_version_l v
+            JOIN repy_version_routine_map vrm ON v.version_id = vrm.version_id
+            WHERE v.user_id = ${inputData.userId}
+              AND v.is_current = TRUE;
+        `;
+        const currentRoutines = await cursor.fetchAll(currentRoutinesQuery);
+
+        // Get the routine being updated to copy its data
+        const oldRoutineQuery = SQL`
+            SELECT routine_id as "routineId", 
+                   schedule_id as "scheduleId", 
+                   routine_name as "routineName"
+            FROM repy_routine_l
+            WHERE routine_id = ${inputData.routineId}
+              AND user_id = ${inputData.userId};
+        `;
+        const oldRoutineData: any = await cursor.fetchOne(oldRoutineQuery);
+
+        if (!oldRoutineData) {
+            throw new Error("Routine not found");
         }
 
-        // Update plans if provided
-        if (inputData.plans) {
-            const deleteQuery = SQL`
-                DELETE FROM repy_routine_plan_map
-                WHERE routine_id = ${inputData.routineId};
-            `;
+        // Create a new routine with updated data
+        const newRoutineId = uuid4();
+        const newRoutineQuery = SQL`
+            INSERT INTO repy_routine_l
+                (routine_id, schedule_id, user_id, routine_name)
+            VALUES (${newRoutineId},
+                    ${oldRoutineData.scheduleId},
+                    ${inputData.userId},
+                    ${inputData.routineName ?? oldRoutineData.routineName});
+        `;
 
-            const mapRows = inputData.plans.map((plan) => SQL`
+        // Get old routine's plan mappings if plans not provided
+        let planMapQuery: SQLStatement;
+        
+        if (inputData.plans) {
+            // Use provided plans
+            const planMapRows = inputData.plans.map((plan) => SQL`
                 (
                     ${uuid4()},             -- map_id
-                    ${inputData.routineId}, -- routine_id
+                    ${newRoutineId},        -- routine_id
                     ${plan.planId},         -- plan_id
                     ${plan.execOrder}       -- exec_order
                 )
             `);
 
-            const mapValues = SQL``;
-            mapRows.forEach((row, index) => {
-                if (index > 0) mapValues.append(SQL`, `);
-                mapValues.append(SQL`${row}`);
+            const planMapValues = SQL``;
+            planMapRows.forEach((row, index) => {
+                if (index > 0) planMapValues.append(SQL`, `);
+                planMapValues.append(SQL`${row}`);
             });
 
-            const insertQuery = SQL`
+            planMapQuery = SQL`
                 INSERT INTO repy_routine_plan_map
                     (map_id, routine_id, plan_id, exec_order)
-                VALUES ${mapValues};
+                VALUES ${planMapValues};
             `;
-
-            const cursor = this.db.cursor();
-            await cursor.execute(deleteQuery, insertQuery);
+        } else {
+            // Copy plans from old routine
+            planMapQuery = SQL`
+                INSERT INTO repy_routine_plan_map (map_id, routine_id, plan_id, exec_order)
+                SELECT ${uuid4()}, ${newRoutineId}, plan_id, exec_order
+                FROM repy_routine_plan_map
+                WHERE routine_id = ${inputData.routineId};
+            `;
         }
+
+        // Disable current version
+        const versionDisableQuery = SQL`
+            UPDATE repy_version_l
+            SET is_current = FALSE
+            WHERE user_id = ${inputData.userId};
+        `;
+
+        // Create new version
+        const versionId = uuid4();
+        const versionQuery = SQL`
+            INSERT INTO repy_version_l (version_id, user_id, is_current)
+            VALUES (${versionId}, ${inputData.userId}, TRUE);
+        `;
+
+        // Build version-routine mappings: all old routines (except the updated one) + new routine
+        const allRoutineIds = [
+            ...currentRoutines
+                .map((r: any) => r.routine_id)
+                .filter((rId: string) => rId !== inputData.routineId),
+            newRoutineId
+        ];
+
+        const versionRoutineRows = allRoutineIds.map((rId) => SQL`
+            (${versionId}, ${rId})
+        `);
+
+        const versionRoutineValues = SQL``;
+        versionRoutineRows.forEach((row, index) => {
+            if (index > 0) versionRoutineValues.append(SQL`, `);
+            versionRoutineValues.append(SQL`${row}`);
+        });
+
+        const versionRoutineMapQuery = SQL`
+            INSERT INTO repy_version_routine_map (version_id, routine_id)
+            VALUES ${versionRoutineValues};
+        `;
+
+        await cursor.execute(newRoutineQuery, planMapQuery, versionDisableQuery, versionQuery, versionRoutineMapQuery);
+        return newRoutineId;
     }
 
     async updateProgram(inputData: UpdateProgramDTO): Promise<void> {
-        const updates: SQL[] = [];
+        const updates: SQLStatement[] = [];
         
         if (inputData.programName) updates.push(SQL`program_name = ${inputData.programName}`);
         if (inputData.goalDate) updates.push(SQL`goal_date = ${inputData.goalDate}`);
