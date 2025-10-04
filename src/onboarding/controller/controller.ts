@@ -2,7 +2,7 @@ import { OnboardingService } from "@src/onboarding/service/service";
 import { Request, Response } from "express";
 import { abort, send } from "@src/output";
 import {
-    CreatePlanSchema,
+    CreateProgramSchema,
     CreateUserBioSchema,
     CreateUserEquipmentsSchema,
     CreateUserPreferencesSchema
@@ -46,12 +46,12 @@ export class PreferencesController extends BaseController {
     };
 }
 
-export class PlanController extends BaseController {
+export class ProgramController extends BaseController {
     post = async (req: Request, res: Response) => {
         try {
-            const dto = validateInput(CreatePlanSchema, req.body);
-            await this.service.createPlan(dto);
-            send(res, 201, { message: "Plan created successfully" });
+            const dto = validateInput(CreateProgramSchema, req.body);
+            await this.service.createProgram(dto);
+            send(res, 201, { message: "Program created successfully" });
         } catch (e: unknown) {
             if (e instanceof ValidationError) {
                 abort(res, 400, String(e));

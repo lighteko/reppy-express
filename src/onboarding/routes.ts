@@ -2,7 +2,7 @@ import { Router } from "express";
 import {
     BioController,
     PreferencesController,
-    PlanController,
+    ProgramController,
     UserEquipmentsController
 } from "@src/onboarding/controller/controller";
 
@@ -11,7 +11,7 @@ export default function onboardingRoutes() {
 
     const bioController = new BioController();
     const preferencesController = new PreferencesController();
-    const planController = new PlanController();
+    const programController = new ProgramController();
     const userEquipmentsController = new UserEquipmentsController();
 
     // Public Routes
@@ -19,7 +19,7 @@ export default function onboardingRoutes() {
     // Protected Routes
     router.post("/bio", bioController.post);
     router.post("/preferences", preferencesController.post);
-    router.post("/plans", planController.post);
+    router.post("/programs", programController.post);
     router.post("/equipments", userEquipmentsController.post);
 
     return router;

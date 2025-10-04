@@ -1,6 +1,6 @@
 import { OnboardingDAO } from "@src/onboarding/dao/dao";
 import {
-    CreatePlanDTO,
+    CreateProgramDTO,
     CreateUserBioDTO,
     CreateUserEquipmentsDTO,
     CreateUserPreferencesDTO
@@ -21,8 +21,8 @@ export class OnboardingService {
         await this.dao.createUserPreferences(inputData);
     }
 
-    async createPlan(inputData: CreatePlanDTO): Promise<string> {
-        return await this.dao.createPlan(inputData);
+    async createProgram(inputData: CreateProgramDTO): Promise<string> {
+        return await this.dao.createProgram(inputData);
     }
 
     async createUserEquipments(inputData: CreateUserEquipmentsDTO): Promise<void> {
