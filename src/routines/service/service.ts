@@ -1,5 +1,5 @@
 import { RoutinesDAO } from "@src/routines/dao/dao";
-import { RefreshRoutinesDTO, UpdatePlanDTO, UpdateScheduleDTO } from "@src/routines/dto/dto";
+import { CreateRoutineDTO, UpdateRoutineDTO, UpdateProgramDTO, UpdateScheduleDTO } from "@src/routines/dto/dto";
 
 export class RoutineService {
     private dao: RoutinesDAO;
@@ -8,12 +8,16 @@ export class RoutineService {
         this.dao = new RoutinesDAO();
     }
 
-    async refreshRoutines(inputData: RefreshRoutinesDTO): Promise<void> {
-        await this.dao.refreshRoutines(inputData);
+    async createRoutine(inputData: CreateRoutineDTO): Promise<string> {
+        return await this.dao.createRoutine(inputData);
     }
 
-    async updatePlan(inputData: UpdatePlanDTO): Promise<void> {
-        await this.dao.updatePlan(inputData);
+    async updateRoutine(inputData: UpdateRoutineDTO): Promise<void> {
+        await this.dao.updateRoutine(inputData);
+    }
+
+    async updateProgram(inputData: UpdateProgramDTO): Promise<void> {
+        await this.dao.updateProgram(inputData);
     }
 
     async updateSchedule(inputData: UpdateScheduleDTO): Promise<void> {

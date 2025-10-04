@@ -1,9 +1,10 @@
 import { z } from "zod";
 import { ActiveDaysSchema } from "@src/onboarding/dto/dto";
 
-export const UpdatePlanSchema = z.object({
-    planId: z.uuid(),
+export const UpdateProgramSchema = z.object({
+    programId: z.uuid(),
     userId: z.uuid(),
+    programName: z.string().optional(),
     startDate: z.string().datetime().optional(),
     goalDate: z.string().datetime().optional(),
     goal: z.string().optional(),
@@ -14,20 +15,27 @@ export const UpdateScheduleSchema = z.object({
     activeDays: z.array(ActiveDaysSchema).min(1),
 });
 
-export const RoutineSchema = z.object({
-    exerciseSetId: z.uuid(),
-    scheduleId: z.uuid(),
-    duration: z.number(),
-    setBreak: z.number(),
-    executionOrder: z.number(),
+export const RoutinePlanMapSchema = z.object({
+    planId: z.uuid(),
+    execOrder: z.number().int(),
 });
 
-export const RefreshRoutinesSchema = z.object({
+export const CreateRoutineSchema = z.object({
     userId: z.uuid(),
-    routines: z.array(RoutineSchema),
+    scheduleId: z.uuid(),
+    routineName: z.string(),
+    plans: z.array(RoutinePlanMapSchema).min(1),
 });
 
-export type UpdatePlanDTO = z.infer<typeof UpdatePlanSchema>;
+export const UpdateRoutineSchema = z.object({
+    routineId: z.uuid(),
+    userId: z.uuid(),
+    routineName: z.string().optional(),
+    plans: z.array(RoutinePlanMapSchema).optional(),
+});
+
+export type UpdateProgramDTO = z.infer<typeof UpdateProgramSchema>;
 export type UpdateScheduleDTO = z.infer<typeof UpdateScheduleSchema>;
-export type RoutineDTO = z.infer<typeof RoutineSchema>;
-export type RefreshRoutinesDTO = z.infer<typeof RefreshRoutinesSchema>;
+export type RoutinePlanMapDTO = z.infer<typeof RoutinePlanMapSchema>;
+export type CreateRoutineDTO = z.infer<typeof CreateRoutineSchema>;
+export type UpdateRoutineDTO = z.infer<typeof UpdateRoutineSchema>;

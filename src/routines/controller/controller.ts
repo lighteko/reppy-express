@@ -3,7 +3,7 @@ import { Request, Response } from "express";
 import { abort, send } from "@src/output";
 import { ValidationError } from "@lib/errors";
 import { validateInput } from "@lib/validate";
-import { RefreshRoutinesSchema, UpdatePlanSchema, UpdateScheduleSchema } from "@src/routines/dto/dto";
+import { CreateRoutineSchema, UpdateRoutineSchema, UpdateProgramSchema, UpdateScheduleSchema } from "@src/routines/dto/dto";
 
 abstract class BaseController {
     protected service = new RoutineService();
@@ -12,9 +12,23 @@ abstract class BaseController {
 export class RoutineController extends BaseController {
     post = async (req: Request, res: Response) => {
         try {
-            const dto = validateInput(RefreshRoutinesSchema, req.body);
-            await this.service.refreshRoutines(dto);
-            send(res, 201, { message: "Routine reset successfully" });
+            const dto = validateInput(CreateRoutineSchema, req.body);
+            const routineId = await this.service.createRoutine(dto);
+            send(res, 201, { message: "Routine created successfully", routineId });
+        } catch (e: unknown) {
+            if (e instanceof ValidationError) {
+                abort(res, 400, String(e));
+            } else {
+                abort(res, 500, String(e));
+            }
+        }
+    }
+
+    patch = async (req: Request, res: Response) => {
+        try {
+            const dto = validateInput(UpdateRoutineSchema, req.body);
+            await this.service.updateRoutine(dto);
+            send(res, 200, { message: "Routine updated successfully" });
         } catch (e: unknown) {
             if (e instanceof ValidationError) {
                 abort(res, 400, String(e));
@@ -25,12 +39,12 @@ export class RoutineController extends BaseController {
     }
 }
 
-export class PlanController extends BaseController {
+export class ProgramController extends BaseController {
     patch = async (req: Request, res: Response) => {
         try {
-            const dto = validateInput(UpdatePlanSchema, req.body);
-            await this.service.updatePlan(dto);
-            send(res, 201, { message: "Plan updated successfully" });
+            const dto = validateInput(UpdateProgramSchema, req.body);
+            await this.service.updateProgram(dto);
+            send(res, 200, { message: "Program updated successfully" });
         } catch (e: unknown) {
             if (e instanceof ValidationError) {
                 abort(res, 400, String(e));
@@ -46,7 +60,7 @@ export class ScheduleController extends BaseController {
         try {
             const dto = validateInput(UpdateScheduleSchema, req.body);
             await this.service.updateSchedule(dto);
-            send(res, 201, { message: "Schedule reset successfully" });
+            send(res, 201, { message: "Schedule updated successfully" });
         } catch (e: unknown) {
             if (e instanceof ValidationError) {
                 abort(res, 400, String(e));

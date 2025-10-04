@@ -1,5 +1,5 @@
 import DB from "@lib/infra/postgres";
-import { RefreshRoutinesDTO, UpdatePlanDTO, UpdateScheduleDTO } from "@src/routines/dto/dto";
+import { CreateRoutineDTO, UpdateRoutineDTO, UpdateProgramDTO, UpdateScheduleDTO } from "@src/routines/dto/dto";
 import SQL from "sql-template-strings";
 import { v4 as uuid4 } from "uuid";
 
@@ -10,63 +10,104 @@ export class RoutinesDAO {
         this.db = DB.getInstance();
     }
 
-    // This function will be used for both creating & updating the routine, since the routine is dependent to versions.
-    async refreshRoutines(inputData: RefreshRoutinesDTO): Promise<void> {
-        const versionDisableQuery = SQL`
-            UPDATE repy_flow_version_l
-            SET is_current = FALSE
-            WHERE user_id = ${inputData.userId};
+    async createRoutine(inputData: CreateRoutineDTO): Promise<string> {
+        const routineId = uuid4();
+        const routineQuery = SQL`
+            INSERT INTO repy_routine_l
+                (routine_id, schedule_id, user_id, routine_name)
+            VALUES (${routineId},
+                    ${inputData.scheduleId},
+                    ${inputData.userId},
+                    ${inputData.routineName});
         `;
 
-        const versionId = uuid4();
-        const versionQuery = SQL`
-            INSERT INTO repy_flow_version_l (version_id, user_id, plan_id, is_current)
-                SELECT 
-                    ${versionId},
-                    p.user_id,
-                    p.plan_id,
-                    TRUE
-                FROM repy_plan_l p
-                WHERE p.user_id = ${inputData.userId}
-            ORDER BY p.created_at DESC
-            LIMIT 1;
-        `;
-
-        const rows = inputData.routines.map((routine) => SQL`
+        const mapRows = inputData.plans.map((plan) => SQL`
             (
-                ${uuid4()},                 -- routine_id
-                ${versionId},               -- version_id
-                ${routine.scheduleId},      -- schedule_id
-                ${routine.duration},        -- duration
-                ${routine.setBreak},        -- set_break
-                ${routine.executionOrder}   -- execution_order
+                ${uuid4()},             -- map_id
+                ${routineId},           -- routine_id
+                ${plan.planId},         -- plan_id
+                ${plan.execOrder}       -- exec_order
             )
         `);
 
-        const values = SQL``;
-        rows.forEach((row, index) => {
-            if (index > 0) values.append(SQL`, `);
-            values.append(SQL`${row}`);
+        const mapValues = SQL``;
+        mapRows.forEach((row, index) => {
+            if (index > 0) mapValues.append(SQL`, `);
+            mapValues.append(SQL`${row}`);
         });
 
-        const routinesQuery = SQL`
-            INSERT INTO repy_routines_l
-                (routine_id, version_id, schedule_id, duration, set_break, execution_order)
-            VALUES ${values};
+        const mapQuery = SQL`
+            INSERT INTO repy_routine_plan_map
+                (map_id, routine_id, plan_id, exec_order)
+            VALUES ${mapValues};
         `;
 
         const cursor = this.db.cursor();
-        await cursor.execute(versionDisableQuery, versionQuery, routinesQuery);
+        await cursor.execute(routineQuery, mapQuery);
+        return routineId;
     }
 
-    async updatePlan(inputData: UpdatePlanDTO): Promise<void> {
-        const query = SQL`
-            UPDATE repy_plan_l
-            SET goal_date  = COALESCE(${inputData.goalDate}, goal_date),
-                goal       = COALESCE(${inputData.goal}, goal),
-                updated_at = NOW()
-            WHERE plan_id = ${inputData.planId};
-        `;
+    async updateRoutine(inputData: UpdateRoutineDTO): Promise<void> {
+        // Update routine name if provided
+        if (inputData.routineName) {
+            const updateQuery = SQL`
+                UPDATE repy_routine_l
+                SET routine_name = ${inputData.routineName}
+                WHERE routine_id = ${inputData.routineId}
+                  AND user_id = ${inputData.userId};
+            `;
+            const cursor = this.db.cursor();
+            await cursor.execute(updateQuery);
+        }
+
+        // Update plans if provided
+        if (inputData.plans) {
+            const deleteQuery = SQL`
+                DELETE FROM repy_routine_plan_map
+                WHERE routine_id = ${inputData.routineId};
+            `;
+
+            const mapRows = inputData.plans.map((plan) => SQL`
+                (
+                    ${uuid4()},             -- map_id
+                    ${inputData.routineId}, -- routine_id
+                    ${plan.planId},         -- plan_id
+                    ${plan.execOrder}       -- exec_order
+                )
+            `);
+
+            const mapValues = SQL``;
+            mapRows.forEach((row, index) => {
+                if (index > 0) mapValues.append(SQL`, `);
+                mapValues.append(SQL`${row}`);
+            });
+
+            const insertQuery = SQL`
+                INSERT INTO repy_routine_plan_map
+                    (map_id, routine_id, plan_id, exec_order)
+                VALUES ${mapValues};
+            `;
+
+            const cursor = this.db.cursor();
+            await cursor.execute(deleteQuery, insertQuery);
+        }
+    }
+
+    async updateProgram(inputData: UpdateProgramDTO): Promise<void> {
+        const updates: SQL[] = [];
+        
+        if (inputData.programName) updates.push(SQL`program_name = ${inputData.programName}`);
+        if (inputData.goalDate) updates.push(SQL`goal_date = ${inputData.goalDate}`);
+        if (inputData.goal) updates.push(SQL`goal = ${inputData.goal}`);
+
+        if (updates.length === 0) return;
+
+        const query = SQL`UPDATE repy_program_l SET `;
+        updates.forEach((update, index) => {
+            if (index > 0) query.append(SQL`, `);
+            query.append(update);
+        });
+        query.append(SQL` WHERE program_id = ${inputData.programId} AND user_id = ${inputData.userId};`);
 
         const cursor = this.db.cursor();
         await cursor.execute(query);
@@ -74,20 +115,20 @@ export class RoutinesDAO {
 
     async updateSchedule(inputData: UpdateScheduleDTO): Promise<void> {
         const versionDisableQuery = SQL`
-            UPDATE repy_flow_version_l
+            UPDATE repy_program_version_l
             SET is_current = FALSE
             WHERE user_id = ${inputData.userId};
         `;
 
         const versionId = uuid4();
         const versionQuery = SQL`
-            INSERT INTO repy_flow_version_l (version_id, user_id, plan_id, is_current)
+            INSERT INTO repy_program_version_l (version_id, user_id, program_id, is_current)
                 SELECT 
                     ${versionId},
                     p.user_id,
-                    p.plan_id,
+                    p.program_id,
                     TRUE
-                FROM repy_plan_l p
+                FROM repy_program_l p
                 WHERE p.user_id = ${inputData.userId}
             ORDER BY p.created_at DESC
             LIMIT 1;
@@ -98,9 +139,7 @@ export class RoutinesDAO {
             ${uuid4()},                  -- schedule_id
             ${versionId},                -- version_id
             ${inputData.userId},         -- user_id
-            ${d.weekday},                -- wkday
-            ${d.startTime},              -- start_time
-            ${d.maxDuration}             -- max_duration
+            ${d.weekday}                 -- wkday
           )
         `);
 
@@ -112,7 +151,7 @@ export class RoutinesDAO {
 
         const scheduleQuery = SQL`
             INSERT INTO repy_schedule_l
-                (schedule_id, version_id, user_id, wkday, start_time, max_duration)
+                (schedule_id, version_id, user_id, wkday)
             VALUES ${values};
         `;
 
