@@ -1,17 +1,20 @@
 import { Router } from "express";
-import { ExerciseController } from "@src/admin/controller/controller";
+import { ExercisePlanController, ExerciseSetController, SetRecordController } from "@src/exercises/controller/controller";
 
 
 export default function exerciseRoutes() {
     const router = Router();
 
-    const exerciseController = new ExerciseController();
+    const exercisePlanController = new ExercisePlanController();
+    const exerciseSetController = new ExerciseSetController();
+    const setRecordController = new SetRecordController();
 
     // Public Routes
 
     // Protected Routes
-    router.post("/strategies", exerciseController.post);
-    router.post("/records", exerciseController.post);
+    router.post("/plans", exercisePlanController.post);
+    router.post("/sets", exerciseSetController.post);
+    router.post("/records", setRecordController.post);
 
     return router;
 }

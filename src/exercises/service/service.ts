@@ -1,5 +1,5 @@
 import { ExerciseDAO } from "@src/exercises/dao/dao";
-import { CreateExerciseRecordDTO, CreateSetStrategyDTO } from "@src/exercises/dto/dto";
+import { CreateExercisePlanDTO, CreateExerciseSetDTO, CreateSetRecordDTO } from "@src/exercises/dto/dto";
 
 export class ExerciseService {
     dao: ExerciseDAO;
@@ -8,12 +8,17 @@ export class ExerciseService {
         this.dao = new ExerciseDAO();
     }
 
-    async createSetStrategy(inputData: CreateSetStrategyDTO): Promise<void> {
-        await this.dao.createSetStrategy(inputData);
+    async createExercisePlan(inputData: CreateExercisePlanDTO): Promise<string> {
+        return await this.dao.createExercisePlan(inputData);
     }
 
-    async createExerciseRecord(inputData: CreateExerciseRecordDTO): Promise<void> {
-        await this.dao.createExerciseRecord(inputData);
+    async createExerciseSet(inputData: CreateExerciseSetDTO): Promise<string> {
+        return await this.dao.createExerciseSet(inputData);
+    }
+
+    async createSetRecord(inputData: CreateSetRecordDTO): Promise<string> {
+        const recordId = await this.dao.createSetRecord(inputData);
         // TODO: Also need to send a request to the FastAPI server to store the record to Qdrant.
+        return recordId;
     }
 }
