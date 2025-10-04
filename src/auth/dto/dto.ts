@@ -36,18 +36,15 @@ export const LoginResponseSchema = z.object({
     email: z.email(),
 });
 
-export const PersonalInfoSchema = z.object({
+export const FullUserProfileSchema = z.object({
     userId: z.uuid(),
-    height: zodDouble,
-    bodyWeight: zodDouble,
-    birthDate: z.iso.datetime(),
-    sex: z.string().max(1),
-});
-
-export const FullUserProfileSchema = PersonalInfoSchema.extend({
     username: z.string(),
     email: z.email(),
-    age: z.int(),
+    sex: z.enum(["MALE", "FEMALE", "N/A"]).optional(),
+    height: zodDouble.optional(),
+    bodyWeight: zodDouble.optional(),
+    birthdate: z.string().optional(),
+    age: z.number().int().optional(),
 });
 
 export type TokenPayloadDTO = z.infer<typeof TokenPayloadSchema>;
@@ -56,5 +53,4 @@ export type SignUpWithPasswordDTO = z.infer<typeof SignUpWithPasswordSchema>;
 export type SignUpWithOAuthDTO = z.infer<typeof SignUpWithOAuthSchema>;
 export type EmailVerificationDTO = z.infer<typeof EmailVerificationSchema>;
 export type LoginResponseDTO = z.infer<typeof LoginResponseSchema>;
-export type PersonalInfoDTO = z.infer<typeof PersonalInfoSchema>;
 export type FullUserProfileDTO = z.infer<typeof FullUserProfileSchema>;
