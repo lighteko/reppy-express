@@ -58,28 +58,20 @@ export class OnboardingDAO {
                     ${inputData.goal});
         `;
 
-        const versionId = uuid4();
-        const versionQuery = SQL`
-            INSERT INTO repy_program_version_l 
-                (version_id, user_id, program_id, is_current)
-            VALUES (${versionId}, ${inputData.userId}, ${programId}, TRUE);
-        `;
-
         const scheduleQuery = SQL`INSERT `;
-        scheduleQuery.append(SQL`INTO repy_schedule_l (schedule_id, version_id, user_id, wkday) VALUES `);
+        scheduleQuery.append(SQL`INTO repy_schedule_l (schedule_id, user_id, wkday) VALUES `);
 
         inputData.activeDays.forEach((dailySchedule, index) => {
             if (index > 0) scheduleQuery.append(SQL`, `);
             const scheduleId = uuid4();
             scheduleQuery.append(SQL`(
                 ${scheduleId}, 
-                ${versionId},
                 ${inputData.userId},
                 ${dailySchedule.weekday})`);
         });
 
         const cursor = this.db.cursor();
-        await cursor.execute(programQuery, versionQuery, scheduleQuery);
+        await cursor.execute(programQuery, scheduleQuery);
         return programId;
     }
 

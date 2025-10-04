@@ -42,8 +42,26 @@ export class RoutinesDAO {
             VALUES ${mapValues};
         `;
 
+        // Create or update version
+        const versionDisableQuery = SQL`
+            UPDATE repy_version_l
+            SET is_current = FALSE
+            WHERE user_id = ${inputData.userId};
+        `;
+
+        const versionId = uuid4();
+        const versionQuery = SQL`
+            INSERT INTO repy_version_l (version_id, user_id, is_current)
+            VALUES (${versionId}, ${inputData.userId}, TRUE);
+        `;
+
+        const versionRoutineMapQuery = SQL`
+            INSERT INTO repy_version_routine_map (version_id, routine_id)
+            VALUES (${versionId}, ${routineId});
+        `;
+
         const cursor = this.db.cursor();
-        await cursor.execute(routineQuery, mapQuery);
+        await cursor.execute(routineQuery, mapQuery, versionDisableQuery, versionQuery, versionRoutineMapQuery);
         return routineId;
     }
 
@@ -114,30 +132,15 @@ export class RoutinesDAO {
     }
 
     async updateSchedule(inputData: UpdateScheduleDTO): Promise<void> {
-        const versionDisableQuery = SQL`
-            UPDATE repy_program_version_l
-            SET is_current = FALSE
+        // Delete existing schedules for the user
+        const deleteQuery = SQL`
+            DELETE FROM repy_schedule_l
             WHERE user_id = ${inputData.userId};
-        `;
-
-        const versionId = uuid4();
-        const versionQuery = SQL`
-            INSERT INTO repy_program_version_l (version_id, user_id, program_id, is_current)
-                SELECT 
-                    ${versionId},
-                    p.user_id,
-                    p.program_id,
-                    TRUE
-                FROM repy_program_l p
-                WHERE p.user_id = ${inputData.userId}
-            ORDER BY p.created_at DESC
-            LIMIT 1;
         `;
 
         const rows = inputData.activeDays.map(d => SQL`
           (
             ${uuid4()},                  -- schedule_id
-            ${versionId},                -- version_id
             ${inputData.userId},         -- user_id
             ${d.weekday}                 -- wkday
           )
@@ -151,11 +154,11 @@ export class RoutinesDAO {
 
         const scheduleQuery = SQL`
             INSERT INTO repy_schedule_l
-                (schedule_id, version_id, user_id, wkday)
+                (schedule_id, user_id, wkday)
             VALUES ${values};
         `;
 
         const cursor = this.db.cursor();
-        await cursor.execute(versionDisableQuery, versionQuery, scheduleQuery);
+        await cursor.execute(deleteQuery, scheduleQuery);
     }
 }
