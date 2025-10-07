@@ -8,7 +8,7 @@ export const CreateUserBioSchema = z.object({
     sex: SexSchema,
     height: zodDouble,
     bodyWeight: zodDouble,
-    birthdate: z.string().datetime(),
+    birthdate: z.iso.datetime(),
 });
 
 export const UnitSystemSchema = z.enum(["CM_KG", "IN_LB"]);
@@ -34,8 +34,8 @@ export const ActiveDaysSchema = z.object({
 export const CreateProgramSchema = z.object({
     userId: z.uuid(),
     programName: z.string(),
-    startDate: z.string().datetime(),
-    goalDate: z.string().datetime(),
+    startDate: z.iso.datetime(),
+    goalDate: z.iso.datetime(),
     goal: z.string(),
     activeDays: z.array(ActiveDaysSchema),
 });
