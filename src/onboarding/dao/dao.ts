@@ -1,4 +1,4 @@
-import DB from "@lib/infra/postgres";
+import DB, { Row } from "@lib/infra/postgres";
 import {
     CreateProgramDTO,
     CreateUserBioDTO,
@@ -6,7 +6,6 @@ import {
     CreateUserPreferencesDTO
 } from "@src/onboarding/dto/dto";
 import SQL from "sql-template-strings";
-import { v4 as uuid4 } from "uuid";
 
 export class OnboardingDAO {
     db: DB;
@@ -45,34 +44,21 @@ export class OnboardingDAO {
         await cursor.execute(query);
     }
 
-    async createProgram(inputData: CreateProgramDTO): Promise<string> {
-        const programId = uuid4();
-        const programQuery = SQL`
+    async createProgram(inputData: CreateProgramDTO): Promise<Row> {
+        const query = SQL`
             INSERT INTO repy_program_l
-                (program_id, user_id, program_name, start_date, goal_date, goal)
-            VALUES (${programId},
-                    ${inputData.userId},
-                    ${inputData.programName},
-                    ${inputData.startDate},
-                    ${inputData.goalDate},
-                    ${inputData.goal});
+                (user_id, program_name, start_date, goal_date, goal)
+            VALUES
+                (${inputData.userId},
+                ${inputData.programName},
+                ${inputData.startDate},
+                ${inputData.goalDate},
+                ${inputData.goal})
+            RETURNING program_id;
         `;
 
-        const scheduleQuery = SQL`INSERT `;
-        scheduleQuery.append(SQL`INTO repy_schedule_l (schedule_id, user_id, wkday) VALUES `);
-
-        inputData.activeDays.forEach((dailySchedule, index) => {
-            if (index > 0) scheduleQuery.append(SQL`, `);
-            const scheduleId = uuid4();
-            scheduleQuery.append(SQL`(
-                ${scheduleId}, 
-                ${inputData.userId},
-                ${dailySchedule.weekday})`);
-        });
-
         const cursor = this.db.cursor();
-        await cursor.execute(programQuery, scheduleQuery);
-        return programId;
+        return await cursor.fetchOne(query);
     }
 
     async createUserEquipments(inputData: CreateUserEquipmentsDTO): Promise<void> {

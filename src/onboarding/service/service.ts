@@ -22,7 +22,8 @@ export class OnboardingService {
     }
 
     async createProgram(inputData: CreateProgramDTO): Promise<string> {
-        return await this.dao.createProgram(inputData);
+        return await this.dao.createProgram(inputData) as unknown as string;
+        // TODO: Send program info to SQS. SQS will trigger AI server.
     }
 
     async createUserEquipments(inputData: CreateUserEquipmentsDTO): Promise<void> {
