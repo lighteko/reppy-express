@@ -1,5 +1,9 @@
 import { RoutinesDAO } from "@src/routines/dao/dao";
-import { CreateRoutineDTO, UpdateRoutineDTO, UpdateProgramDTO, UpdateScheduleDTO } from "@src/routines/dto/dto";
+import {
+    CreateRoutineDTO,
+    UpdateProgramDTO,
+    CreateBatchRoutinesDTO
+} from "@src/routines/dto/dto";
 
 export class RoutineService {
     private dao: RoutinesDAO;
@@ -9,18 +13,18 @@ export class RoutineService {
     }
 
     async createRoutine(inputData: CreateRoutineDTO): Promise<string> {
-        return await this.dao.createRoutine(inputData);
+        return await this.dao.createRoutine(inputData) as unknown as string;
     }
 
-    async updateRoutine(inputData: UpdateRoutineDTO): Promise<string> {
-        return await this.dao.updateRoutine(inputData);
+    async createBatchRoutines(inputData: CreateBatchRoutinesDTO): Promise<void> {
+        await this.dao.createBatchRoutines(inputData);
     }
 
     async updateProgram(inputData: UpdateProgramDTO): Promise<void> {
-        await this.dao.updateProgram(inputData);
-    }
-
-    async updateSchedule(inputData: UpdateScheduleDTO): Promise<void> {
-        await this.dao.updateSchedule(inputData);
+        if (!inputData.goal)
+            await this.dao.updateProgram(inputData);
+        else {
+            // TODO: Send update req to SQS.
+        }
     }
 }
