@@ -1,17 +1,17 @@
 import { AuthService } from "@src/auth/service/service";
 import { Request, Response } from "express";
-import { SignUpWithOAuthSchema, SignUpWithPasswordSchema } from "@src/auth/dto/dto";
-import { abort, send } from "@src/output";
+import { LoginPayloadSchema, SignUpWithOAuthSchema, SignUpWithPasswordSchema } from "@src/auth/dto/dto";
+import { abort, send, sendTokens } from "@src/output";
 import { DuplicateError, ValidationError } from "@lib/errors";
 import { validateInput } from "@lib/validate";
+import Tokens from "@lib/infra/tokens";
 
-export class GeneralAuthController {
-    private service: AuthService;
+abstract class BaseController {
+    protected service = new AuthService();
+    protected tokens = Tokens.getInstance();
+}
 
-    constructor() {
-        this.service = new AuthService();
-    }
-
+export class GeneralSignUpController extends BaseController {
     post = async (req: Request, res: Response) => {
         try {
             const dto = validateInput(SignUpWithPasswordSchema, req.body);
@@ -21,7 +21,7 @@ export class GeneralAuthController {
             if (e instanceof DuplicateError) {
                 abort(res, 409, e.message);
             } else if (e instanceof ValidationError) {
-                abort(res, 400, String(e));
+                abort(res, 400, e.message);
             } else if (e instanceof AggregateError) {
                 console.error(e.errors);
                 abort(res, 500, String(e));
@@ -32,13 +32,7 @@ export class GeneralAuthController {
     };
 }
 
-export class OAuthBasedAuthController {
-    private service: AuthService;
-
-    constructor() {
-        this.service = new AuthService();
-    }
-
+export class OAuthSignUpController extends BaseController {
     post = async (req: Request, res: Response) => {
         try {
             const dto = validateInput(SignUpWithOAuthSchema, req.body);
@@ -48,7 +42,28 @@ export class OAuthBasedAuthController {
             if (e instanceof DuplicateError) {
                 abort(res, 409, e.message);
             } else if (e instanceof ValidationError) {
-                abort(res, 400, String(e));
+                abort(res, 400, e.message);
+            } else {
+                abort(res, 500, String(e));
+            }
+        }
+    }
+}
+
+export class GeneralLoginController extends BaseController {
+    post = async (req: Request, res: Response) => {
+        try {
+            const basicToken = req.headers.authorization;
+            if (!basicToken) {
+                abort(res, 401, "Unauthorized");
+                return;
+            }
+            const payload = validateInput(LoginPayloadSchema, this.tokens.parseBasicToken(basicToken));
+            const loginResponse = await this.service.login(payload);
+            sendTokens(res, loginResponse);
+        } catch (e: unknown) {
+            if (e instanceof ValidationError) {
+                abort(res, 400, e.message);
             } else {
                 abort(res, 500, String(e));
             }

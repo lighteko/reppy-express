@@ -31,9 +31,8 @@ export const EmailVerificationSchema = z.object({
 });
 
 export const LoginResponseSchema = z.object({
-    userId: z.uuid(),
-    username: z.string(),
-    email: z.email(),
+    accessToken: z.string(),
+    refreshToken: z.string(),
 });
 
 export const FullUserProfileSchema = z.object({
@@ -47,6 +46,11 @@ export const FullUserProfileSchema = z.object({
     age: z.number().int().optional(),
 });
 
+export const LoginPayloadSchema = z.object({
+    email: z.email(),
+    password: z.string(),
+});
+
 export type TokenPayloadDTO = z.infer<typeof TokenPayloadSchema>;
 export type OAuthProvider = z.infer<typeof OAuthProviderSchema>;
 export type SignUpWithPasswordDTO = z.infer<typeof SignUpWithPasswordSchema>;
@@ -54,3 +58,4 @@ export type SignUpWithOAuthDTO = z.infer<typeof SignUpWithOAuthSchema>;
 export type EmailVerificationDTO = z.infer<typeof EmailVerificationSchema>;
 export type LoginResponseDTO = z.infer<typeof LoginResponseSchema>;
 export type FullUserProfileDTO = z.infer<typeof FullUserProfileSchema>;
+export type LoginPayloadDTO = z.infer<typeof LoginPayloadSchema>;
