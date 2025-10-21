@@ -1,4 +1,34 @@
-export * from "@lib/errors/validation-error";
-export * from "@lib/errors/duplicate-error";
-export * from "@lib/errors/verification-error";
-export * from "@lib/errors/internal-server-error"
+export class AuthenticationError extends Error {
+    constructor(message: string) {
+        super(message);
+        this.name = 'AuthenticationError';
+    }
+}
+
+export class AuthorizationError extends Error {
+    constructor(message: string) {
+        super(message);
+        this.name = 'AuthorizationError';
+    }
+}
+
+export class DuplicateError extends Error {
+    constructor(message: string) {
+        super(message);
+        this.name = 'DuplicateError';
+    }
+}
+
+export class InternalServerError extends Error {
+    constructor(message: string) {
+        super(message);
+        this.name = 'InternalServerError';
+    }
+}
+
+export class ValidationError extends Error {
+    constructor(message: string) {
+        super(message);
+        this.name = 'ValidationError';
+    }
+}
