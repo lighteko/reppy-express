@@ -143,6 +143,7 @@ export class RoutinesDAO {
         const query = SQL`
             UPDATE repy_program_l
             SET program_name = COALESCE(${inputData.programName}, program_name),
+                experience   = COALESCE(${inputData.experience}, experience),
                 start_date   = COALESCE(${inputData.startDate}, start_date),
                 goal_date    = COALESCE(${inputData.goalDate}, goal_date),
                 goal         = COALESCE(${inputData.goal}, goal)

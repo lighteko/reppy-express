@@ -47,10 +47,11 @@ export class OnboardingDAO {
     async createProgram(inputData: CreateProgramDTO): Promise<Row> {
         const query = SQL`
             INSERT INTO repy_program_l
-                (user_id, program_name, start_date, goal_date, goal)
+                (user_id, program_name, experience, start_date, goal_date, goal)
             VALUES
                 (${inputData.userId},
                 ${inputData.programName},
+                ${inputData.experience}
                 ${inputData.startDate},
                 ${inputData.goalDate},
                 ${inputData.goal})
@@ -62,15 +63,15 @@ export class OnboardingDAO {
     }
 
     async createUserEquipments(inputData: CreateUserEquipmentsDTO): Promise<void> {
-        const query = SQL`INSERT `;
-        query.append(SQL`INTO repy_user_equipment_map (user_id, equipment_id) VALUES `);
+        const equipmentIds = JSON.stringify({ equipmentIds: inputData.equipmentIds });
+        const query = SQL`
+            INSERT INTO repy_user_equipments_map
+                (user_id, equipment_id)
+            SELECT ${inputData.userId},
+                   equipment_id::uuid
+            FROM jsonb_array_elements(${equipmentIds}::jsonb -> 'equipmentIds') equipment_id;
+        `;
 
-        inputData.equipmentIds.forEach((equipmentId, index) => {
-            if (index > 0) query.append(SQL`,`);
-            query.append(SQL`(${inputData.userId}, ${equipmentId})`);
-        });
-
-        query.append(SQL`;`);
         const cursor = this.db.cursor();
         await cursor.execute(query);
     }

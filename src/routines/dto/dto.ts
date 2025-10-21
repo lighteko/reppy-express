@@ -4,6 +4,7 @@ export const UpdateProgramSchema = z.object({
     programId: z.uuid(),
     userId: z.uuid(),
     programName: z.string().optional(),
+    experience: z.enum(["BEGINNER", "INTERMEDIATE", "PROFESSIONAL"]),
     startDate: z.iso.datetime().optional(),
     goalDate: z.iso.datetime().optional(),
     goal: z.string().optional(),

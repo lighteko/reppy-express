@@ -34,6 +34,7 @@ export const ActiveDaysSchema = z.object({
 export const CreateProgramSchema = z.object({
     userId: z.uuid(),
     programName: z.string(),
+    experience: z.enum(["BEGINNER", "INTERMEDIATE", "PROFESSIONAL"]),
     startDate: z.iso.datetime(),
     goalDate: z.iso.datetime(),
     goal: z.string(),

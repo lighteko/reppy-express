@@ -11,12 +11,15 @@ import feedbackRoutes from "@src/feedbacks/routes";
 import adminRoutes from "@src/admin/routes";
 import exerciseRoutes from "@src/exercises/routes";
 import chatRoutes from "@src/chats/routes";
+import userRoutes from "@src/users/routes";
+import Tokens from "@lib/infra/tokens";
 
 function createApp() {
     const app = express();
 
     new BaseConfig(app);
     DB.initApp(app);
+    Tokens.initApp(app);
 
     app.set("trust proxy", true);
     app.use(express.json());
@@ -74,6 +77,7 @@ function createApp() {
     app.use("/feedbacks", feedbackRoutes());
     app.use("/exercises", exerciseRoutes());
     app.use("/chats", chatRoutes());
+    app.use("/users", userRoutes());
 
     // Admin routes
     app.use("/admin", adminRoutes());

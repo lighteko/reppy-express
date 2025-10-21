@@ -2,6 +2,7 @@ import { Express } from "express";
 import jwt from "jsonwebtoken";
 import type { SignOptions } from "jsonwebtoken";
 import crypto from "crypto";
+import { AuthenticationError, ValidationError } from "@lib/errors";
 
 export interface TokenPayloadDTO {
     userId: string;
@@ -97,7 +98,7 @@ class Tokens {
                 Tokens.config.JWT_ACCESS_SECRET
             ) as TokenPayloadDTO;
         } catch (error) {
-            throw new Error("Invalid access token");
+            throw new AuthenticationError("Invalid access token");
         }
     }
 
@@ -108,7 +109,7 @@ class Tokens {
                 Tokens.config.JWT_REFRESH_SECRET
             ) as TokenPayloadDTO;
         } catch (error) {
-            throw new Error("Invalid refresh token");
+            throw new AuthenticationError("Invalid refresh token");
         }
     }
 
@@ -119,7 +120,7 @@ class Tokens {
                 Tokens.config.EMAIL_TOKEN_SECRET
             ) as TokenPayloadDTO;
         } catch (error) {
-            throw new Error("Invalid email token");
+            throw new AuthenticationError("Invalid email token");
         }
     }
 
@@ -134,23 +135,20 @@ class Tokens {
         email: string;
         password: string;
     } {
-        try {
-            const decoded = Buffer.from(basicToken, "base64").toString("utf8");
-            const delimiterPos = decoded.indexOf(":");
-            if (delimiterPos === -1) {
-                throw new Error("Invalid credentials format");
-            }
-            const email = decoded.substring(0, delimiterPos);
-            const password = decoded.substring(delimiterPos + 1);
-            console.log(email);
-            console.log(password);
-            if (!email || !password) {
-                throw new Error("Invalid basic token format");
-            }
-            return { email, password };
-        } catch (error) {
-            throw new Error("Invalid basic token");
+        if (basicToken.split(" ")[0] !== "Basic") {
+            throw new ValidationError("Invalid basic token");
         }
+        const decoded = Buffer.from(basicToken, "base64").toString("utf8");
+        const delimiterPos = decoded.indexOf(":");
+        if (delimiterPos === -1) {
+            throw new ValidationError("Invalid credential format");
+        }
+        const email = decoded.substring(0, delimiterPos);
+        const password = decoded.substring(delimiterPos + 1);
+        if (!email || !password) {
+            throw new AuthenticationError("Invalid credentials");
+        }
+        return { email, password };
     }
 }
 

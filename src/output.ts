@@ -1,4 +1,4 @@
-import { Response } from "express";
+import { CookieOptions, Response } from "express";
 
 export function send(
     res: Response,
@@ -8,27 +8,43 @@ export function send(
     return res.status(code).json({ data });
 }
 
-export function sendTokens(
+export const sendTokens = (
     res: Response,
     tokens: { accessToken: string; refreshToken: string },
-    payload: any = {}
-) {
-    return res.status(200).json({
-        data: {
-            ...payload,
-            accessToken: tokens.accessToken,
-            refreshToken: tokens.refreshToken,
-        },
-    });
-}
+    data: any = {},
+    isSessionOnly = false
+) => {
+    const isProd = process.env.NODE_ENV === "production";
 
-export function clearTokens(
-    res: Response,
-    message = "Logout succeeded"
-) {
-    return res.status(200).json({
-        data: { message }
+    const cookieOptions: CookieOptions = {
+        httpOnly: true,
+        secure: isProd,
+        sameSite: isProd ? "none" : "lax",
+        maxAge: !isSessionOnly ? 7 * 24 * 60 * 60 * 1000 : undefined,
+    };
+
+    res.cookie("refreshToken", `Bearer ${tokens.refreshToken}`, cookieOptions);
+
+    const responseData = {
+        ...data,
+        accessToken: tokens.accessToken,
+    };
+
+    res.status(200).json({ data: responseData });
+};
+
+export function clearRefreshToken(res: Response, message: string = "Log out succeeded") {
+    const isProd = process.env.NODE_ENV === "production";
+
+    // Only clear the refresh token cookie since access token is no longer stored as a cookie
+    res.clearCookie("refreshToken", {
+        httpOnly: true,
+        secure: isProd,
+        sameSite: isProd ? "none" : "lax",
+        path: "/",
     });
+
+    res.status(200).send({ data: { message } });
 }
 
 export function abort(

@@ -3,3 +3,5 @@
 /.idea
 reppy_ddl.sql
 .env
+seed.sql
+GEMINI.md
