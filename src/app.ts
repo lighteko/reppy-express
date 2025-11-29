@@ -4,15 +4,17 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import initLogger from "@src/logger";
 import DB from "@lib/infra/postgres";
-import authRoutes from "@src/auth/routes";
-import onboardingRoutes from "@src/onboarding/routes";
-import routinesRoutes from "@src/routines/routes";
-import feedbackRoutes from "@src/feedbacks/routes";
-import adminRoutes from "@src/admin/routes";
-import exerciseRoutes from "@src/exercises/routes";
-import chatRoutes from "@src/chats/routes";
-import userRoutes from "@src/users/routes";
 import Tokens from "@lib/infra/tokens";
+
+import authRouter from "@src/auth/routes";
+import onboardingRouter from "@src/onboarding/routes";
+import routinesRouter from "@src/routines/routes";
+import feedbackRouter from "@src/feedbacks/routes";
+import adminRouter from "@src/admin/routes";
+import exerciseRouter from "@src/exercises/routes"
+import chatRouter from "@src/chats/routes";
+import userRouter from "@src/users/routes";
+import equipmentsRouter from "@src/equipments/router";
 
 function createApp() {
     const app = express();
@@ -35,6 +37,7 @@ function createApp() {
     app.use((req: Request, _res: Response, next: NextFunction) => {
         logger.debug(`Request Path: ${req.path}`);
         logger.debug(`Request Method: ${req.method}`);
+        // TODO: Add logger for IP address
         logger.debug(`Request Headers: ${JSON.stringify(req.headers, null, 2)}`);
         logger.debug(`Request Data: ${JSON.stringify(req.body, null, 2)}`);
         next();
@@ -69,18 +72,19 @@ function createApp() {
     });
 
     // Public routes
-    app.use("/auth", authRoutes());
+    app.use("/auth", authRouter());
 
     // Protected routes
-    app.use("/onboarding", onboardingRoutes());
-    app.use("/routines", routinesRoutes());
-    app.use("/feedbacks", feedbackRoutes());
-    app.use("/exercises", exerciseRoutes());
-    app.use("/chats", chatRoutes());
-    app.use("/users", userRoutes());
+    app.use("/onboarding", onboardingRouter());
+    app.use("/routines", routinesRouter());
+    app.use("/feedbacks", feedbackRouter());
+    app.use("/exercises", exerciseRouter());
+    app.use("/chats", chatRouter());
+    app.use("/users", userRouter());
+    app.use("/equipments", equipmentsRouter());
 
     // Admin routes
-    app.use("/admin", adminRoutes());
+    app.use("/admin", adminRouter());
 
     return app;
 }

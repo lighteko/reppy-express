@@ -1,14 +1,14 @@
 import { AdminService } from "@src/admin/service/service";
 import { Request, Response } from "express";
 import { abort, send } from "@src/output";
-import { ValidationError } from "class-validator";
+import { ValidationError } from "@lib/errors";
 import { validateInput, validateOutput } from "@lib/validate";
 import {
     CreateMuscleSchema,
     CreateEquipmentSchema,
     CreateExerciseSchema,
     MusclesResponseSchema,
-    EquipmentsResponseSchema, 
+    EquipmentsResponseSchema,
     ExercisesResponseSchema,
     GetMusclesSchema,
     GetEquipmentsSchema,
@@ -95,7 +95,7 @@ export class EquipmentController extends BaseController {
         } catch (e: unknown) {
             abort(res, 500, String(e));
         }
-    }
+    };
 }
 
 export class ExerciseController extends BaseController {
@@ -128,7 +128,7 @@ export class ExerciseController extends BaseController {
                 abort(res, 500, String(e));
             }
         }
-    }
+    };
 }
 
 export class LoginController extends BaseController {
@@ -140,5 +140,5 @@ export class LoginController extends BaseController {
         } catch (e: unknown) {
             abort(res, 500, String(e));
         }
-    }
+    };
 }

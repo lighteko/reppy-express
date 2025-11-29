@@ -15,6 +15,8 @@ export function validateInput<T extends z.ZodTypeAny>(schema: T, data: unknown):
     return parseResult.data as z.infer<T>;
 }
 
+// Useless function
+// TODO: remove this
 export function validateOutput<T extends z.ZodTypeAny>(schema: T, data: unknown): void {
     const parseResult = schema.safeParse(data);
     if (!parseResult.success) {

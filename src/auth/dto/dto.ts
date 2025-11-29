@@ -30,20 +30,24 @@ export const EmailVerificationSchema = z.object({
     email: z.email(),
 });
 
-export const LoginResponseSchema = z.object({
-    accessToken: z.string(),
-    refreshToken: z.string(),
-});
-
 export const FullUserProfileSchema = z.object({
     userId: z.uuid(),
     username: z.string(),
     email: z.email(),
-    sex: z.enum(["MALE", "FEMALE", "N/A"]).optional(),
-    height: zodDouble.optional(),
-    bodyWeight: zodDouble.optional(),
-    birthdate: z.string().optional(),
-    age: z.number().int().optional(),
+    sex: z.enum(["MALE", "FEMALE", "N/A"]).nullable(),
+    height: zodDouble.nullable(),
+    bodyWeight: zodDouble.nullable(),
+    birthdate: z.string().nullable(),
+    age: z.number().int().nullable(),
+    unitSystem: z.string().nullable(),
+    notifReminder: z.boolean().nullable(),
+    locale: z.string().nullable(),
+});
+
+export const LoginResponseSchema = z.object({
+    accessToken: z.string(),
+    refreshToken: z.string(),
+    user: FullUserProfileSchema
 });
 
 export const LoginPayloadSchema = z.object({

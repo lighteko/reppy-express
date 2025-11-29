@@ -2,7 +2,7 @@ import { Express } from "express";
 import jwt from "jsonwebtoken";
 import type { SignOptions } from "jsonwebtoken";
 import crypto from "crypto";
-import { AuthenticationError, ValidationError } from "@lib/errors";
+import { AuthenticationError } from "@lib/errors";
 
 export interface TokenPayloadDTO {
     userId: string;
@@ -129,26 +129,6 @@ class Tokens {
             accessToken: this.generateAccessToken(payload),
             refreshToken: this.generateRefreshToken(payload),
         };
-    }
-
-    public parseBasicToken(basicToken: string): {
-        email: string;
-        password: string;
-    } {
-        if (basicToken.split(" ")[0] !== "Basic") {
-            throw new ValidationError("Invalid basic token");
-        }
-        const decoded = Buffer.from(basicToken, "base64").toString("utf8");
-        const delimiterPos = decoded.indexOf(":");
-        if (delimiterPos === -1) {
-            throw new ValidationError("Invalid credential format");
-        }
-        const email = decoded.substring(0, delimiterPos);
-        const password = decoded.substring(delimiterPos + 1);
-        if (!email || !password) {
-            throw new AuthenticationError("Invalid credentials");
-        }
-        return { email, password };
     }
 }
 

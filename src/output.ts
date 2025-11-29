@@ -5,15 +5,15 @@ export function send(
     code: number,
     data: object
 ) {
-    return res.status(code).json({ data });
+    return res.status(code).json(data);
 }
 
-export const sendTokens = (
+export function sendTokens(
     res: Response,
     tokens: { accessToken: string; refreshToken: string },
     data: any = {},
     isSessionOnly = false
-) => {
+) {
     const isProd = process.env.NODE_ENV === "production";
 
     const cookieOptions: CookieOptions = {
@@ -30,8 +30,8 @@ export const sendTokens = (
         accessToken: tokens.accessToken,
     };
 
-    res.status(200).json({ data: responseData });
-};
+    res.status(200).json(responseData);
+}
 
 export function clearRefreshToken(res: Response, message: string = "Log out succeeded") {
     const isProd = process.env.NODE_ENV === "production";
@@ -44,7 +44,7 @@ export function clearRefreshToken(res: Response, message: string = "Log out succ
         path: "/",
     });
 
-    res.status(200).send({ data: { message } });
+    res.status(200).send({ message });
 }
 
 export function abort(
@@ -53,7 +53,5 @@ export function abort(
     description: string,
 ) {
     console.error(description);
-    return res.status(code).json({
-        data: { message: code === 500 ? "Internal Server Error" : description },
-    });
+    return res.status(code).json({ message: code === 500 ? "Internal Server Error" : description });
 }

@@ -7,9 +7,10 @@ export const authenticate = (
     res: Response,
     next: NextFunction
 ) => {
-    const authHeader = req.headers.authorization;
+    const authHeader = req.get("authorization") as string;
     let token: string | undefined;
 
+    console.log(authHeader);
     if (authHeader) {
         const tokenParts = authHeader.split(" ");
         if (tokenParts.length === 2 && tokenParts[0] === "Bearer") {

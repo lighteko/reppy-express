@@ -10,7 +10,7 @@ import {
 import { AuthenticationError, DuplicateError } from "@lib/errors";
 import Tokens from "@lib/infra/tokens";
 import { validateInput } from "@lib/validate";
-import { encryptPassword, encryptToken, validatePassword } from "@lib/utils/encryptors";
+import { encryptPassword, encryptToken, tokenExpiresAt, validatePassword } from "@lib/utils/encryptors";
 
 export class AuthService {
     private dao: AuthDAO;
@@ -39,7 +39,7 @@ export class AuthService {
     }
 
     async login(payload: LoginPayloadDTO): Promise<LoginResponseDTO> {
-        const user = await this.dao.getUserIdAndPwdByEmail(payload);
+        const user = await this.dao.getUserInfoByEmail(payload.email);
 
         if (!user) {
             throw new AuthenticationError("Invalid Credentials.");
@@ -52,11 +52,16 @@ export class AuthService {
         });
         const { refreshToken, accessToken } = this.tokens.generateAuthTokens(tokenPayload);
         const encryptedRefreshToken = encryptToken(refreshToken);
-        await this.dao.saveRefreshToken(tokenPayload.userId, encryptedRefreshToken);
-
+        const expiresAt = tokenExpiresAt(refreshToken);
+        await this.dao.upsertRefreshToken(tokenPayload.userId, encryptedRefreshToken, expiresAt);
         return validateInput(LoginResponseSchema, {
             accessToken,
             refreshToken,
+            user,
         });
+    }
+
+    async logout(tokenHash: Buffer): Promise<void> {
+        await this.dao.revokeRefreshToken(tokenHash);
     }
 }

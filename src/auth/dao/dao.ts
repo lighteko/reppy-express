@@ -1,7 +1,7 @@
 import DB, { Row } from "@lib/infra/postgres";
 import SQL from "sql-template-strings";
 import { v4 as uuid4 } from "uuid";
-import { LoginPayloadDTO, SignUpWithOAuthDTO, SignUpWithPasswordDTO, TokenPayloadDTO } from "@src/auth/dto/dto";
+import { LoginPayloadDTO, SignUpWithOAuthDTO, SignUpWithPasswordDTO } from "@src/auth/dto/dto";
 
 export class AuthDAO {
     private db: DB;
@@ -14,7 +14,7 @@ export class AuthDAO {
         const userId = uuid4();
         const query = SQL`
             INSERT INTO REPY_USER_L
-                (USER_ID, USERNAME, EMAIL, PASSWORD)
+                (user_id, username, email, password)
             VALUES (${userId},
                     ${inputData.username},
                     ${inputData.email},
@@ -28,8 +28,8 @@ export class AuthDAO {
     async createUserWithOAuth(inputData: SignUpWithOAuthDTO): Promise<void> {
         const userId = uuid4();
         const query = SQL`
-            INSERT INTO REPY_USER_L
-                (USER_ID, USERNAME, EMAIL, PROVIDER, SUB)
+            INSERT INTO repy_user_l
+                (user_id, username, email, provider, sub)
             VALUES (${userId},
                     ${inputData.username},
                     ${inputData.email},
@@ -51,10 +51,15 @@ export class AuthDAO {
                    bio.height                                          AS height,
                    bio.body_weight                                     AS "bodyWeight",
                    bio.birthdate                                       AS birthdate,
-                   EXTRACT(YEAR FROM AGE(CURRENT_DATE, bio.birthdate)) AS age
+                   EXTRACT(YEAR FROM AGE(CURRENT_DATE, bio.birthdate)) AS age,
+                   pref.unit_system                                    AS "unitSystem",
+                   pref.notif_reminder                                 AS "notifReminder",
+                   pref.locale                                         AS "locale"
             FROM repy_user_l u
-                     JOIN repy_user_bio_l bio
-                          ON u.user_id = bio.user_id
+                     LEFT JOIN repy_user_bio_l bio
+                               ON u.user_id = bio.user_id
+                     LEFT JOIN repy_user_pref_l pref
+                               ON u.user_id = pref.user_id
             WHERE u.email = ${email};
         `;
 
@@ -64,37 +69,50 @@ export class AuthDAO {
 
     async getUserIdAndPwdByEmail(inputData: LoginPayloadDTO): Promise<Row> {
         const query = SQL`
-            SELECT u.user_id  AS "userId",
-                   u.password AS password
+            SELECT user_id  AS "userId",
+                   password AS password
             FROM repy_user_l
-            WHERE u.email = ${inputData.email};
+            WHERE email = ${inputData.email};
         `;
 
         const cursor = this.db.cursor();
         return await cursor.fetchOne(query);
     }
 
-    async saveRefreshToken(userId: string, refreshToken: Buffer): Promise<void> {
+    async upsertRefreshToken(userId: string, tokenHash: Buffer, expiresAt: Date): Promise<void> {
         const query = SQL`
-            INSERT INTO repy_refresh_token_l (
-                user_id,
---                 jti,
-                token_hash,        -- 평문 토큰은 절대 저장 금지. 서버에서 HMAC-SHA256(pepper)로 해시한 값
---                 token_version,     -- 유저 레벨 무효화 버전(발급 시점의 값)
-                expires_at
---                 ip,
---                 user_agent,
---                 last_used_at
-            ) VALUES (
-                ${userId},          -- user_id
---                 $2::uuid,          -- jti
-                ${refreshToken},
---                 $4::int,           -- token_version (예: repy_user_l 쪽 current_version을 읽어와서 넣음)
-                NOW()    -- expires_at
---                 $6::inet,          -- ip
---                 $7::text,          -- user_agent
---                 NOW()
-            );  
+            WITH lock_user AS (SELECT 1
+                               FROM repy_user_l
+                               WHERE user_id = ${userId}
+                                   FOR UPDATE),
+                 upd AS (
+                     UPDATE repy_refresh_token_l
+                         SET revoked_at = NOW()
+                         WHERE user_id = ${userId}
+                             AND revoked_at IS NULL
+                         RETURNING 1)
+            INSERT
+            INTO repy_refresh_token_l (user_id, token_hash, expires_at, last_used_at)
+            VALUES (${userId},
+                    ${tokenHash},
+                    ${expiresAt},
+                    NOW());
         `;
+
+        const cursor = this.db.cursor();
+        await cursor.execute(query);
+    }
+
+    async revokeRefreshToken(tokenHash: Buffer) {
+        const query = SQL`
+            UPDATE repy_refresh_token_l
+            SET revoked_at   = NOW(),
+                last_used_at = NOW()
+            WHERE token_hash = ${tokenHash}
+              AND revoked_at IS NULL;
+        `;
+
+        const cursor = this.db.cursor();
+        await cursor.execute(query);
     }
 }
