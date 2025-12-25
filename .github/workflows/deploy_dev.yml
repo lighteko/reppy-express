@@ -6,17 +6,15 @@ on:
       ref:
         description: "deploy할 git ref (branch/tag/sha). 비우면 default"
         required: false
-      force:
-        description: "true면 조건 무시하고 강제 배포"
-        required: false
-        default: "false"
   pull_request:
     branches: [dev]
     types: [closed]
 
 jobs:
   deploy:
-    if: github.event.pull_request.merged == true
+    if: |
+      (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
+      || (github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-latest
 
     permissions:
@@ -39,7 +37,7 @@ jobs:
 
       - name: Build and push Docker image to GHCR
         run: |
-          IMAGE=ghcr.io/${{ github.repository_owner }}/reppy-express:latest
+          IMAGE=ghcr.io/${{ github.repository_owner }}/reppy-express:dev
           docker build -t $IMAGE .
           docker push $IMAGE
 
@@ -54,6 +52,6 @@ jobs:
 
             echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u "${{ secrets.GHCR_USERNAME }}" --password-stdin
 
-            docker compose pull reppy_prod
-            docker compose up -d --no-deps reppy_prod
+            docker compose pull reppy_dev
+            docker compose up -d --no-deps reppy_dev
             docker image prune -f
