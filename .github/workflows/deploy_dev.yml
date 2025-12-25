@@ -1,6 +1,15 @@
 name: Deploy Express App to OCI (DEV)
 
 on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "deploy할 git ref (branch/tag/sha). 비우면 default"
+        required: false
+      force:
+        description: "true면 조건 무시하고 강제 배포"
+        required: false
+        default: "false"
   pull_request:
     branches: [dev]
     types: [closed]
