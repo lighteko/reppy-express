@@ -52,6 +52,6 @@ jobs:
 
             echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u "${{ secrets.GHCR_USERNAME }}" --password-stdin
 
-            docker compose -f docker-compose.dev pull reppy_dev
-            docker compose -f docker-compose.dev.yml up -d --no-deps reppy_dev
+            docker compose pull reppy_dev
+            docker compose up -d --no-deps reppy_dev
             docker image prune -f
