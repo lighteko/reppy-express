@@ -5,6 +5,7 @@
   "repository": "https://github.com/lighteko/reppy-express.git",
   "author": "lighteko <dev.lighteko@gmail.com>",
   "license": "MIT",
+  "type": "module",
   "dependencies": {
     "bcrypt": "^6.0.0",
     "cookie-parser": "^1.4.7",
