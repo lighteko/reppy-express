@@ -1,4 +1,4 @@
-name: Deploy Express App to OCI (PRODUCTION)
+name: Deploy Express App to OCI (DEV)
 
 on:
   workflow_dispatch:
@@ -6,6 +6,7 @@ on:
       ref:
         description: "deploy할 git ref (branch/tag/sha). 비우면 default"
         required: false
+        default: ""
   pull_request:
     branches: [main]
     types: [closed]
@@ -19,27 +20,31 @@ jobs:
 
     permissions:
       contents: read
-      packages: write
+
+    env:
+      OCIR_IMAGE: ${{ secrets.OCIR_REGISTRY }}/${{ secrets.OCIR_NAMESPACE }}/${{ secrets.OCIR_REPO }}/reppy-express:latest
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.ref != '' && github.event.inputs.ref || github.sha }}
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Log in to GHCR
+      - name: Log in to OCIR
         uses: docker/login-action@v3
         with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          registry: ${{ secrets.OCIR_REGISTRY }}
+          username: ${{ secrets.OCIR_USERNAME }}
+          password: ${{ secrets.OCIR_AUTH_TOKEN }}
 
-      - name: Build and push Docker image to GHCR
+      - name: Build and push Docker image to OCIR
         run: |
-          IMAGE=ghcr.io/${{ github.repository_owner }}/reppy-express:latest
-          docker build -t $IMAGE .
-          docker push $IMAGE
+          echo "Building: $OCIR_IMAGE"
+          docker build -t "$OCIR_IMAGE" .
+          docker push "$OCIR_IMAGE"
 
       - name: Deploy to OCI (SSH + docker compose)
         uses: appleboy/ssh-action@v1.0.3
@@ -48,9 +53,11 @@ jobs:
           username: ${{ secrets.OCI_SSH_USER }}
           key: ${{ secrets.OCI_SSH_KEY }}
           script: |
+            set -e
             cd /opt/reppy
 
-            echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u "${{ secrets.GHCR_USERNAME }}" --password-stdin
+            echo "${{ secrets.OCIR_AUTH_TOKEN }}" | docker login "${{ secrets.OCIR_REGISTRY }}" \
+              -u "${{ secrets.OCIR_USERNAME }}" --password-stdin
 
             docker compose pull reppy_prod
             docker compose up -d --no-deps reppy_prod
