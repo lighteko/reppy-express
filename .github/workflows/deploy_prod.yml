@@ -1,4 +1,4 @@
-name: Deploy Express App to OCI (DEV)
+name: Deploy Express App to OCI (PRODUCTION)
 
 on:
   workflow_dispatch:
