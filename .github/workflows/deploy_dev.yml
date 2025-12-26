@@ -22,7 +22,7 @@ jobs:
       contents: read
 
     env:
-      OCIR_IMAGE: ${{ secrets.OCIR_REGISTRY }}/${{ secrets.OCIR_NAMESPACE }}/${{ secrets.OCIR_REPO }}/reppy-express:dev
+      OCIR_IMAGE: ${{ secrets.OCIR_REGISTRY }}/${{ secrets.OCIR_NAMESPACE }}/${{ secrets.OCIR_REPO }}:dev
 
     steps:
       - name: Checkout code
