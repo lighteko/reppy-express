@@ -5,6 +5,7 @@ import {
     GeneralLoginController,
     GeneralLogoutController
 } from "@src/auth/controller/controller";
+import { authenticate } from "@src/middlewares";
 
 export default function authRouter(): Router {
     const router = Router();
@@ -18,7 +19,7 @@ export default function authRouter(): Router {
     router.post("/signup", generalSignUpController.post);
     router.post("/signup/oauth", oAuthSignUpController.post);
     router.post("/login", generalLoginController.post);
-    router.post("/logout", generalLogoutController.post);
+    router.post("/logout", authenticate, generalLogoutController.post);
 
     // Protected Routes
 
