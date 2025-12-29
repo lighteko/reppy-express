@@ -14,8 +14,8 @@ export class GeneralSignUpController extends BaseController {
     post = async (req: Request, res: Response) => {
         try {
             const dto = validateInput(SignUpWithPasswordSchema, req.body);
-            await this.service.signUpWithPassword(dto);
-            send(res, 200, { message: "User created successfully." });
+            const loginResponse = await this.service.signUpWithPassword(dto);
+            sendTokens(res, { accessToken: loginResponse.accessToken }, { user: loginResponse.user });
         } catch (e: any) {
             if (e instanceof DuplicateError) {
                 abort(res, 409, e.toString());

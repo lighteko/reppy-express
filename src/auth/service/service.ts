@@ -21,13 +21,21 @@ export class AuthService {
         this.tokens = Tokens.getInstance();
     }
 
-    async signUpWithPassword(inputData: SignUpWithPasswordDTO): Promise<void> {
+    async signUpWithPassword(inputData: SignUpWithPasswordDTO): Promise<LoginResponseDTO> {
         const user = await this.dao.getUserInfoByEmail(inputData.email);
         if (user) {
             throw new DuplicateError("User already exists.");
         }
         inputData.password = await encryptPassword(inputData.password);
         await this.dao.createUserWithPassword(inputData);
+        const tokenPayload = validateInput(TokenPayloadSchema, {
+            userId: (user as any).userId as string,
+            email: inputData.email,
+        });
+        return validateInput(LoginResponseSchema, {
+            accessToken: this.tokens.generateAccessToken(tokenPayload),
+            user,
+        });
     }
 
     async signUpWithOAuth(inputData: SignUpWithOAuthDTO): Promise<void> {
