@@ -1,4 +1,4 @@
-import { CookieOptions, Response } from "express";
+import { Response } from "express";
 
 export function send(
     res: Response,
@@ -10,41 +10,16 @@ export function send(
 
 export function sendTokens(
     res: Response,
-    tokens: { accessToken: string; refreshToken: string },
+    tokens: { accessToken: string },
     data: any = {},
-    isSessionOnly = false
+    _isSessionOnly = false
 ) {
-    const isProd = process.env.NODE_ENV === "production";
-
-    const cookieOptions: CookieOptions = {
-        httpOnly: true,
-        secure: isProd,
-        sameSite: isProd ? "none" : "lax",
-        maxAge: !isSessionOnly ? 7 * 24 * 60 * 60 * 1000 : undefined,
-    };
-
-    res.cookie("refreshToken", `Bearer ${tokens.refreshToken}`, cookieOptions);
-
     const responseData = {
         ...data,
         accessToken: tokens.accessToken,
     };
 
     res.status(200).json(responseData);
-}
-
-export function clearRefreshToken(res: Response, message: string = "Log out succeeded") {
-    const isProd = process.env.NODE_ENV === "production";
-
-    // Only clear the refresh token cookie since access token is no longer stored as a cookie
-    res.clearCookie("refreshToken", {
-        httpOnly: true,
-        secure: isProd,
-        sameSite: isProd ? "none" : "lax",
-        path: "/",
-    });
-
-    res.status(200).send({ message });
 }
 
 export function abort(

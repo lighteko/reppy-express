@@ -5,6 +5,7 @@ import {
     ProgramController,
     UserEquipmentsController
 } from "@src/onboarding/controller/controller";
+import { authenticate } from "@src/middlewares";
 
 export default function onboardingRoutes() {
     const router = Router();
@@ -17,6 +18,7 @@ export default function onboardingRoutes() {
     // Public Routes
 
     // Protected Routes
+    router.use(authenticate);
     router.post("/bio", bioController.post);
     router.post("/preferences", preferencesController.post);
     router.post("/programs", programController.post);

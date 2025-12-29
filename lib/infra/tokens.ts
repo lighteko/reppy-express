@@ -13,14 +13,11 @@ export interface TokenPayloadDTO {
 
 export interface TokenResponse {
     accessToken: string;
-    refreshToken: string;
 }
 
 interface TokensConfig {
     JWT_ACCESS_SECRET: string;
-    JWT_REFRESH_SECRET: string;
     JWT_ACCESS_EXPIRY: string;
-    JWT_REFRESH_EXPIRY: string;
     EMAIL_TOKEN_SECRET: string;
 }
 
@@ -28,9 +25,7 @@ class Tokens {
     private static instance: Tokens | null = null;
     private static config: TokensConfig = {
         JWT_ACCESS_SECRET: "",
-        JWT_REFRESH_SECRET: "",
         JWT_ACCESS_EXPIRY: "",
-        JWT_REFRESH_EXPIRY: "",
         EMAIL_TOKEN_SECRET: "",
     };
     private static initialized = false;
@@ -38,20 +33,14 @@ class Tokens {
     public static initApp(app: Express): void {
         const {
             JWT_ACCESS_SECRET,
-            JWT_REFRESH_SECRET,
             JWT_ACCESS_EXPIRY,
-            JWT_REFRESH_EXPIRY,
             EMAIL_TOKEN_SECRET,
         } = app.get("config");
 
         Tokens.config.JWT_ACCESS_SECRET =
             JWT_ACCESS_SECRET || Tokens.config.JWT_ACCESS_SECRET;
-        Tokens.config.JWT_REFRESH_SECRET =
-            JWT_REFRESH_SECRET || Tokens.config.JWT_REFRESH_SECRET;
         Tokens.config.JWT_ACCESS_EXPIRY =
             JWT_ACCESS_EXPIRY || Tokens.config.JWT_ACCESS_EXPIRY;
-        Tokens.config.JWT_REFRESH_EXPIRY =
-            JWT_REFRESH_EXPIRY || Tokens.config.JWT_REFRESH_EXPIRY;
         Tokens.config.EMAIL_TOKEN_SECRET =
             EMAIL_TOKEN_SECRET || Tokens.config.EMAIL_TOKEN_SECRET;
 
@@ -81,12 +70,6 @@ class Tokens {
         } as SignOptions) as string;
     }
 
-    public generateRefreshToken(payload: TokenPayloadDTO): string {
-        return jwt.sign(payload as object, Tokens.config.JWT_REFRESH_SECRET, {
-            expiresIn: Tokens.config.JWT_REFRESH_EXPIRY,
-        } as SignOptions) as string;
-    }
-
     public generateEmailToken(): string {
         return crypto.randomBytes(32).toString("hex");
     }
@@ -99,17 +82,6 @@ class Tokens {
             ) as TokenPayloadDTO;
         } catch (error) {
             throw new AuthenticationError("Invalid access token");
-        }
-    }
-
-    public verifyRefreshToken(token: string): TokenPayloadDTO {
-        try {
-            return jwt.verify(
-                token,
-                Tokens.config.JWT_REFRESH_SECRET
-            ) as TokenPayloadDTO;
-        } catch (error) {
-            throw new AuthenticationError("Invalid refresh token");
         }
     }
 
@@ -127,7 +99,6 @@ class Tokens {
     public generateAuthTokens(payload: TokenPayloadDTO): TokenResponse {
         return {
             accessToken: this.generateAccessToken(payload),
-            refreshToken: this.generateRefreshToken(payload),
         };
     }
 }

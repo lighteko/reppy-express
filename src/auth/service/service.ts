@@ -10,7 +10,7 @@ import {
 import { AuthenticationError, DuplicateError } from "@lib/errors";
 import Tokens from "@lib/infra/tokens";
 import { validateInput } from "@lib/validate";
-import { encryptPassword, encryptToken, tokenExpiresAt, validatePassword } from "@lib/utils/encryptors";
+import { encryptPassword, validatePassword } from "@lib/utils/encryptors";
 
 export class AuthService {
     private dao: AuthDAO;
@@ -50,18 +50,9 @@ export class AuthService {
             userId: (user as any).userId as string,
             email: payload.email,
         });
-        const { refreshToken, accessToken } = this.tokens.generateAuthTokens(tokenPayload);
-        const encryptedRefreshToken = encryptToken(refreshToken);
-        const expiresAt = tokenExpiresAt(refreshToken);
-        await this.dao.upsertRefreshToken(tokenPayload.userId, encryptedRefreshToken, expiresAt);
         return validateInput(LoginResponseSchema, {
-            accessToken,
-            refreshToken,
+            accessToken: this.tokens.generateAccessToken(tokenPayload),
             user,
         });
-    }
-
-    async logout(tokenHash: Buffer): Promise<void> {
-        await this.dao.revokeRefreshToken(tokenHash);
     }
 }

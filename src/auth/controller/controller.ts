@@ -1,10 +1,10 @@
 import { AuthService } from "@src/auth/service/service";
 import { Request, Response } from "express";
 import { LoginPayloadSchema, SignUpWithOAuthSchema, SignUpWithPasswordSchema } from "@src/auth/dto/dto";
-import { abort, clearRefreshToken, send, sendTokens } from "@src/output";
+import { abort, send, sendTokens } from "@src/output";
 import { AuthenticationError, DuplicateError, ValidationError } from "@lib/errors";
 import { validateInput } from "@lib/validate";
-import { encryptToken, parseBasicToken } from "@lib/utils/encryptors";
+import { parseBasicToken } from "@lib/utils/encryptors";
 
 abstract class BaseController {
     protected service = new AuthService();
@@ -63,12 +63,7 @@ export class GeneralLoginController extends BaseController {
             }
             const payload = validateInput(LoginPayloadSchema, parseBasicToken(basicToken.split(" ")[1]));
             const loginResponse = await this.service.login(payload);
-            sendTokens(res,
-                {
-                    accessToken: loginResponse.accessToken,
-                    refreshToken: loginResponse.refreshToken
-                },
-                { user: loginResponse.user });
+            sendTokens(res, { accessToken: loginResponse.accessToken }, { user: loginResponse.user });
         } catch (e: unknown) {
             if (e instanceof ValidationError) {
                 abort(res, 400, e.toString());
@@ -84,14 +79,7 @@ export class GeneralLoginController extends BaseController {
 export class GeneralLogoutController extends BaseController {
     post = async (req: Request, res: Response) => {
         try {
-            const refreshToken = req.cookies.refreshToken;
-            if (!refreshToken || refreshToken.split(" ")[0] !== "Bearer") {
-                abort(res, 401, "Refresh token is required");
-                return;
-            }
-            const tokenHash = encryptToken(refreshToken.split(" ")[1]);
-            await this.service.logout(tokenHash);
-            clearRefreshToken(res);
+            send(res, 200, { message: "Log out succeeded" });
         } catch (e: unknown) {
             if (e instanceof ValidationError) {
                 abort(res, 400, e.toString());

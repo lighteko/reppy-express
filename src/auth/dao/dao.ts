@@ -79,40 +79,4 @@ export class AuthDAO {
         return await cursor.fetchOne(query);
     }
 
-    async upsertRefreshToken(userId: string, tokenHash: Buffer, expiresAt: Date): Promise<void> {
-        const query = SQL`
-            WITH lock_user AS (SELECT 1
-                               FROM repy_user_l
-                               WHERE user_id = ${userId}
-                                   FOR UPDATE),
-                 upd AS (
-                     UPDATE repy_refresh_token_l
-                         SET revoked_at = NOW()
-                         WHERE user_id = ${userId}
-                             AND revoked_at IS NULL
-                         RETURNING 1)
-            INSERT
-            INTO repy_refresh_token_l (user_id, token_hash, expires_at, last_used_at)
-            VALUES (${userId},
-                    ${tokenHash},
-                    ${expiresAt},
-                    NOW());
-        `;
-
-        const cursor = this.db.cursor();
-        await cursor.execute(query);
-    }
-
-    async revokeRefreshToken(tokenHash: Buffer) {
-        const query = SQL`
-            UPDATE repy_refresh_token_l
-            SET revoked_at   = NOW(),
-                last_used_at = NOW()
-            WHERE token_hash = ${tokenHash}
-              AND revoked_at IS NULL;
-        `;
-
-        const cursor = this.db.cursor();
-        await cursor.execute(query);
-    }
 }
