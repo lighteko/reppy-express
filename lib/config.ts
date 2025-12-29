@@ -17,6 +17,13 @@ export class BaseConfig {
     static JWT_ACCESS_SECRET = process.env.JWT_ACCESS_SECRET || "";
     static JWT_ACCESS_EXPIRY = process.env.JWT_ACCESS_EXPIRY || "";
     static EMAIL_TOKEN_SECRET = process.env.EMAIL_TOKEN_SECRET || "";
+    static OCI_AUTH_MODE = process.env.OCI_AUTH_MODE || "";
+    static OCI_REGION = process.env.OCI_REGION || "";
+    static OCI_QUEUE_MESSAGES_ENDPOINT = process.env.OCI_QUEUE_MESSAGES_ENDPOINT || "";
+    static OCI_QUEUE_HIGH_ID = process.env.OCI_QUEUE_HIGH_ID || "";
+    static OCI_QUEUE_BATCH_ID = process.env.OCI_QUEUE_BATCH_ID || "";
+    static OCI_QUEUE_MAX_RETRIES = process.env.OCI_QUEUE_MAX_RETRIES || "";
+    static OCI_QUEUE_RETRY_BASE_MS = process.env.OCI_QUEUE_RETRY_BASE_MS || "";
 
     constructor(app: Express) {
         BaseConfig.initApp(app);
@@ -35,6 +42,13 @@ export class BaseConfig {
             JWT_ACCESS_SECRET: this.JWT_ACCESS_SECRET,
             JWT_ACCESS_EXPIRY: this.JWT_ACCESS_EXPIRY,
             EMAIL_TOKEN_SECRET: this.EMAIL_TOKEN_SECRET,
+            OCI_AUTH_MODE: this.OCI_AUTH_MODE,
+            OCI_REGION: this.OCI_REGION,
+            OCI_QUEUE_MESSAGES_ENDPOINT: this.OCI_QUEUE_MESSAGES_ENDPOINT,
+            OCI_QUEUE_HIGH_ID: this.OCI_QUEUE_HIGH_ID,
+            OCI_QUEUE_BATCH_ID: this.OCI_QUEUE_BATCH_ID,
+            OCI_QUEUE_MAX_RETRIES: this.OCI_QUEUE_MAX_RETRIES,
+            OCI_QUEUE_RETRY_BASE_MS: this.OCI_QUEUE_RETRY_BASE_MS,
         });
 
         console.log("App configuration initialized.");

@@ -62,3 +62,28 @@ jobs:
             docker compose pull reppy_prod
             docker compose up -d --no-deps reppy_prod
             docker image prune -f
+
+      - name: Health Check
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          URL="${{ secrets.DEV_API_ENDPOINT }}/health"
+          MAX_RETRIES=30
+          SLEEP_SEC=5
+
+          echo "Checking health: $URL"
+          for i in $(seq 1 $MAX_RETRIES); do
+            STATUS=$(curl -sS -o /tmp/health_body.txt -w "%{http_code}" "$URL" || true)
+            if [ "$STATUS" = "200" ]; then
+              echo "✅ Healthy (HTTP 200)"
+              exit 0
+            fi
+            echo "Attempt $i/$MAX_RETRIES: got HTTP $STATUS"
+            echo "Body:"
+            head -c 500 /tmp/health_body.txt || true
+            echo ""
+            sleep $SLEEP_SEC
+          done
+          echo "❌ Health check failed after $MAX_RETRIES tries"
+          exit 1
