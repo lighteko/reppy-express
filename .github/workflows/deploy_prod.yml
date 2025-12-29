@@ -68,7 +68,7 @@ jobs:
         run: |
           set -euo pipefail
 
-          URL="${{ secrets.DEV_API_ENDPOINT }}/health"
+          URL="${{ secrets.PROD_API_ENDPOINT }}/health"
           MAX_RETRIES=30
           SLEEP_SEC=5
 
