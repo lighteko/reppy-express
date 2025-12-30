@@ -26,9 +26,10 @@ export class AuthService {
             throw new DuplicateError("User already exists.");
         }
         inputData.password = await encryptPassword(inputData.password);
-        const user = await this.dao.createUserWithPassword(inputData);
+        await this.dao.createUserWithPassword(inputData);
+        const user = await this.dao.getUserInfoByEmail(inputData.email);
         const tokenPayload = validateInput(TokenPayloadSchema, {
-            userId: (user as any).userId as string,
+            userId: (user as any).userId,
             email: inputData.email,
         });
         return validateInput(LoginResponseSchema, {

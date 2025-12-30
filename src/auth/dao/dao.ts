@@ -10,7 +10,7 @@ export class AuthDAO {
         this.db = DB.getInstance();
     }
 
-    async createUserWithPassword(inputData: SignUpWithPasswordDTO): Promise<Row> {
+    async createUserWithPassword(inputData: SignUpWithPasswordDTO): Promise<void> {
         const query = SQL`
             INSERT INTO repy_user_l
                 (username, email, password)
@@ -18,11 +18,10 @@ export class AuthDAO {
                     ${inputData.username},
                     ${inputData.email},
                     ${inputData.password})
-            RETURNING user_id;
         `;
 
         const cursor = this.db.cursor();
-        return await cursor.fetchOne(query);
+        await cursor.execute(query);
     }
 
     async createUserWithOAuth(inputData: SignUpWithOAuthDTO): Promise<void> {

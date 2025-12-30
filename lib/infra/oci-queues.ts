@@ -127,7 +127,7 @@ class OCIQueues {
         if (cfg.OCI_AUTH_MODE === "instance_principal") {
             return await new common.InstancePrincipalsAuthenticationDetailsProviderBuilder().build();
         }
-        const filePath = cfg.OCI_CONFIG_FILE_PATH ?? process.env.OCI_CONFIG_FILE ?? "~/.oci/config";
+        const filePath = cfg.OCI_CONFIG_FILE_PATH ?? process.env.OCI_CONFIG_FILE_PATH ?? "~/.oci/config";
         const profile = cfg.OCI_CONFIG_PROFILE ?? process.env.OCI_CONFIG_PROFILE ?? "DEFAULT";
         return new common.ConfigFileAuthenticationDetailsProvider(filePath, profile);
     }
