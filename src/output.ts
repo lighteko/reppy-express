@@ -15,8 +15,10 @@ export function sendTokens(
     _isSessionOnly = false
 ) {
     const responseData = {
-        ...data,
-        accessToken: tokens.accessToken,
+        data: {
+            ...data,
+            accessToken: tokens.accessToken,
+        }
     };
 
     res.status(200).json(responseData);
