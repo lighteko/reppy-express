@@ -22,12 +22,12 @@ export class AuthService {
     }
 
     async signUpWithPassword(inputData: SignUpWithPasswordDTO): Promise<LoginResponseDTO> {
-        const user = await this.dao.getUserInfoByEmail(inputData.email);
-        if (user) {
+        if (await this.dao.getUserInfoByEmail(inputData.email)) {
             throw new DuplicateError("User already exists.");
         }
         inputData.password = await encryptPassword(inputData.password);
         await this.dao.createUserWithPassword(inputData);
+        const user = await this.dao.getUserInfoByEmail(inputData.email);
         const tokenPayload = validateInput(TokenPayloadSchema, {
             userId: (user as any).userId as string,
             email: inputData.email,
