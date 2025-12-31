@@ -5,7 +5,7 @@ export function send(
     code: number,
     data: object
 ) {
-    return res.status(code).json(data);
+    return res.status(code).json({ data });
 }
 
 export function sendTokens(
