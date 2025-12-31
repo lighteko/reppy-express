@@ -72,7 +72,7 @@ export class UserDAO {
 
     async getUserOnboardingStatus(userId: string) {
         const query = SQL`
-            SELECT is_onboarded FROM repy_user_l
+            SELECT is_onboarded AS "isOnboarded" FROM repy_user_l
             WHERE user_id = ${userId};
         `;
         const cursor = this.db.cursor();
