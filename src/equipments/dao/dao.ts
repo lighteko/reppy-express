@@ -23,7 +23,7 @@ export class EquipmentDAO {
                               AND eqi.locale = ${inputData.locale}
             WHERE NOT (
                 eq.equipment_type = ANY (
-                    COALESCE(${inputData.types_to_exclude}::equipment_type_enum[], ARRAY []::equipment_type_enum[])
+                    COALESCE(${inputData.typesToExclude}::equipment_type_enum[], ARRAY []::equipment_type_enum[])
                     )
                 );
         `;
