@@ -1,32 +1,22 @@
 import { OnboardingDAO } from "@src/onboarding/dao/dao";
 import {
-    CreateProgramDTO,
-    CreateUserBioDTO,
-    CreateUserEquipmentsDTO,
-    CreateUserPreferencesDTO
+    OnboardUserDTO
 } from "@src/onboarding/dto/dto";
+import Queues from "@lib/infra/queues";
 
 export class OnboardingService {
     private dao: OnboardingDAO;
+    private queue: Queues;
 
     constructor() {
         this.dao = new OnboardingDAO();
+        this.queue = Queues.getInstance();
     }
 
-    async createUserBio(inputData: CreateUserBioDTO): Promise<void> {
-        await this.dao.createUserBio(inputData);
-    }
-
-    async createUserPreferences(inputData: CreateUserPreferencesDTO): Promise<void> {
-        await this.dao.createUserPreferences(inputData);
-    }
-
-    async createProgram(inputData: CreateProgramDTO): Promise<string> {
-        return await this.dao.createProgram(inputData) as unknown as string;
-        // TODO: Send program info to SQS. SQS will trigger AI server.
-    }
-
-    async createUserEquipments(inputData: CreateUserEquipmentsDTO): Promise<void> {
-        await this.dao.createUserEquipments(inputData);
+    async onboardUser(inputData: OnboardUserDTO) {
+        // 1. onboard user with given data
+        // 2. send program generation request to Queue.
+        await this.dao.onboardUser(inputData);
+        // this.queue.enqueueBatch()
     }
 }

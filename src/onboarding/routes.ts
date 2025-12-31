@@ -1,28 +1,18 @@
 import { Router } from "express";
 import {
-    BioController,
-    PreferencesController,
-    ProgramController,
-    UserEquipmentsController
+    OnboardingController,
 } from "@src/onboarding/controller/controller";
-import { authenticate } from "@src/middlewares";
 
 export default function onboardingRoutes() {
     const router = Router();
 
-    const bioController = new BioController();
-    const preferencesController = new PreferencesController();
-    const programController = new ProgramController();
-    const userEquipmentsController = new UserEquipmentsController();
+    const onboardingController = new OnboardingController();
+
 
     // Public Routes
 
     // Protected Routes
-    router.use(authenticate);
-    router.post("/bio", bioController.post);
-    router.post("/preferences", preferencesController.post);
-    router.post("/programs", programController.post);
-    router.post("/equipments", userEquipmentsController.post);
+    router.post("/", onboardingController.post);
 
     return router;
 }

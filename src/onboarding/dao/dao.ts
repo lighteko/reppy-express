@@ -1,9 +1,6 @@
-import DB, { Row } from "@lib/infra/postgres";
+import DB from "@lib/infra/postgres";
 import {
-    CreateProgramDTO,
-    CreateUserBioDTO,
-    CreateUserEquipmentsDTO,
-    CreateUserPreferencesDTO
+    OnboardUserDTO
 } from "@src/onboarding/dto/dto";
 import SQL from "sql-template-strings";
 
@@ -14,62 +11,55 @@ export class OnboardingDAO {
         this.db = DB.getInstance();
     }
 
-
-    async createUserBio(inputData: CreateUserBioDTO): Promise<void> {
+    async onboardUser(inputData: OnboardUserDTO) {
         const query = SQL`
-            INSERT INTO repy_user_bio_l
-                (user_id, height, sex, body_weight, birthdate)
-            VALUES (${inputData.userId},
-                    ${inputData.height},
-                    ${inputData.sex},
-                    ${inputData.bodyWeight},
-                    ${inputData.birthdate});
-        `;
-
-        const cursor = this.db.cursor();
-        await cursor.execute(query);
-    }
-
-    async createUserPreferences(inputData: CreateUserPreferencesDTO): Promise<void> {
-        const query = SQL`
-            INSERT INTO repy_user_pref_l
-                (user_id, unit_system, notif_reminder, locale)
-            VALUES (${inputData.userId},
-                    ${inputData.unitSystem},
-                    ${inputData.notifReminder},
-                    ${inputData.locale});
-        `;
-
-        const cursor = this.db.cursor();
-        await cursor.execute(query);
-    }
-
-    async createProgram(inputData: CreateProgramDTO): Promise<Row> {
-        const query = SQL`
-            INSERT INTO repy_program_l
-                (user_id, program_name, experience, start_date, goal_date, goal)
-            VALUES
-                (${inputData.userId},
-                ${inputData.programName},
-                ${inputData.experience}
-                ${inputData.startDate},
-                ${inputData.goalDate},
-                ${inputData.goal})
-            RETURNING program_id;
-        `;
-
-        const cursor = this.db.cursor();
-        return await cursor.fetchOne(query);
-    }
-
-    async createUserEquipments(inputData: CreateUserEquipmentsDTO): Promise<void> {
-        const equipmentIds = JSON.stringify({ equipmentIds: inputData.equipmentIds });
-        const query = SQL`
-            INSERT INTO repy_user_equipments_map
+            WITH bio AS (
+                INSERT INTO repy_user_bio_l
+                    (user_id, height, sex, body_weight, birthdate)
+                    VALUES (${inputData.userId},
+                            ${inputData.height},
+                            ${inputData.sex},
+                            ${inputData.bodyWeight},
+                            ${inputData.birthdate})
+                    ON CONFLICT (user_id) DO UPDATE
+                        SET height = EXCLUDED.height,
+                            sex = EXCLUDED.sex,
+                            body_weight = EXCLUDED.body_weight,
+                            birthdate = EXCLUDED.birthdate
+                    RETURNING user_id),
+                 pref AS (
+                     INSERT INTO repy_user_pref_l
+                         (user_id, unit_system, notif_reminder, locale)
+                         VALUES (${inputData.userId},
+                                 ${inputData.unitSystem},
+                                 false,
+                                 ${inputData.locale})
+                         ON CONFLICT (user_id) DO UPDATE
+                             SET unit_system = EXCLUDED.unit_system,
+                                 notif_reminder = EXCLUDED.notif_reminder,
+                                 locale = EXCLUDED.locale
+                         RETURNING user_id),
+                 onboard AS (
+                     UPDATE repy_user_l
+                         SET is_onboarded = TRUE
+                         WHERE user_id = ${inputData.userId}
+                             AND is_onboarded IS DISTINCT FROM TRUE
+                         RETURNING user_id)
+            INSERT
+            INTO repy_user_equipments_map
                 (user_id, equipment_id)
-            SELECT ${inputData.userId},
-                   equipment_id::uuid
-            FROM jsonb_array_elements(${equipmentIds}::jsonb -> 'equipmentIds') equipment_id;
+            SELECT b.user_id,
+                   e.equipment_id
+            FROM bio b
+                     JOIN pref p
+                          ON p.user_id = b.user_id
+                     LEFT JOIN onboard o
+                               ON o.user_id = b.user_id
+                     JOIN repy_equipment_preset_map m
+                          ON m.preset_id = ${inputData.presetId}
+                     JOIN repy_equipment_m e
+                          ON e.equipment_id = m.equipment_id
+            ON CONFLICT (user_id, equipment_id) DO NOTHING;
         `;
 
         const cursor = this.db.cursor();
