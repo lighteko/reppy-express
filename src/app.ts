@@ -16,6 +16,7 @@ import exerciseRouter from "@src/exercises/routes"
 import chatRouter from "@src/chats/routes";
 import userRouter from "@src/users/routes";
 import equipmentsRouter from "@src/equipments/router";
+import { authenticate } from "@src/middlewares";
 
 
 async function createApp() {
@@ -78,13 +79,13 @@ async function createApp() {
     app.use("/auth", authRouter());
 
     // Protected routes
-    app.use("/onboarding", onboardingRouter());
-    app.use("/routines", routinesRouter());
-    app.use("/feedbacks", feedbackRouter());
-    app.use("/exercises", exerciseRouter());
-    app.use("/chats", chatRouter());
-    app.use("/users", userRouter());
-    app.use("/equipments", equipmentsRouter());
+    app.use("/onboarding", authenticate, onboardingRouter());
+    app.use("/routines", authenticate, routinesRouter());
+    app.use("/feedbacks", authenticate, feedbackRouter());
+    app.use("/exercises", authenticate, exerciseRouter());
+    app.use("/chats", authenticate, chatRouter());
+    app.use("/users", authenticate, userRouter());
+    app.use("/equipments", authenticate, equipmentsRouter());
 
     // Admin routes
     app.use("/admin", adminRouter());

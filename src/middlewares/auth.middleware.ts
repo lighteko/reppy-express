@@ -10,7 +10,6 @@ export const authenticate = (
     const authHeader = req.get("authorization") as string;
     let token: string | undefined;
 
-    console.log(authHeader);
     if (authHeader) {
         const tokenParts = authHeader.split(" ");
         if (tokenParts.length === 2 && tokenParts[0] === "Bearer") {

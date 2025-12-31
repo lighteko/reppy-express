@@ -1,6 +1,5 @@
 import { Router } from "express";
 import { ChatsController, ChatsWithCursorController } from "@src/chats/controller/controller";
-import { authenticate } from "@src/middlewares";
 
 
 export default function chatRoutes() {
@@ -12,7 +11,6 @@ export default function chatRoutes() {
     // Public Routes
 
     // Protected Routes
-    router.use(authenticate);
     router.get("/:id", chatsController.get);
     router.post("/", chatsController.post);
     router.delete("/:id", chatsController.delete);

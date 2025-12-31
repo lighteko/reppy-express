@@ -4,7 +4,6 @@ import {
     ProgramController,
     RoutineController,
 } from "@src/routines/controller/controller";
-import { authenticate } from "@src/middlewares";
 
 
 export default function routinesRoutes() {
@@ -17,7 +16,6 @@ export default function routinesRoutes() {
     // Public Routes
 
     // Protected Routes
-    router.use(authenticate);
     router.post("/", routineController.post);
     router.post("/batch", batchRoutineController.post);
     router.patch("/programs", programController.patch);
