@@ -24,6 +24,10 @@ export class BaseConfig {
     static OCI_QUEUE_BATCH_ID = process.env.OCI_QUEUE_BATCH_ID || "";
     static OCI_QUEUE_MAX_RETRIES = process.env.OCI_QUEUE_MAX_RETRIES || "";
     static OCI_QUEUE_RETRY_BASE_MS = process.env.OCI_QUEUE_RETRY_BASE_MS || "";
+    static OCI_OBJECT_STORAGE_NAMESPACE = process.env.OCI_OBJECT_STORAGE_NAMESPACE || "";
+    static OCI_OBJECT_STORAGE_BUCKET = process.env.OCI_OBJECT_STORAGE_BUCKET || "";
+    static OCI_OS_MAX_RETRIES = process.env.OCI_OS_MAX_RETRIES || "";
+    static OCI_OS_RETRY_BASE_MS = process.env.OCI_OS_RETRY_BASE_MS || "";
 
     constructor(app: Express) {
         BaseConfig.initApp(app);
@@ -49,6 +53,10 @@ export class BaseConfig {
             OCI_QUEUE_BATCH_ID: this.OCI_QUEUE_BATCH_ID,
             OCI_QUEUE_MAX_RETRIES: this.OCI_QUEUE_MAX_RETRIES,
             OCI_QUEUE_RETRY_BASE_MS: this.OCI_QUEUE_RETRY_BASE_MS,
+            OCI_OBJECT_STORAGE_NAMESPACE: this.OCI_OBJECT_STORAGE_NAMESPACE,
+            OCI_OBJECT_STORAGE_BUCKET: this.OCI_OBJECT_STORAGE_BUCKET,
+            OCI_OS_MAX_RETRIES: this.OCI_OS_MAX_RETRIES,
+            OCI_OS_RETRY_BASE_MS: this.OCI_OS_RETRY_BASE_MS,
         });
 
         console.log("App configuration initialized.");

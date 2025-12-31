@@ -5,7 +5,7 @@ import cookieParser from "cookie-parser";
 import initLogger from "@src/logger";
 import DB from "@lib/infra/postgres";
 import Tokens from "@lib/infra/tokens";
-import OCIQueues from "@lib/infra/oci-queues";
+import Queues from "@lib/infra/queues";
 
 import authRouter from "@src/auth/routes";
 import onboardingRouter from "@src/onboarding/routes";
@@ -17,6 +17,7 @@ import chatRouter from "@src/chats/routes";
 import userRouter from "@src/users/routes";
 import equipmentsRouter from "@src/equipments/router";
 import { authenticate } from "@src/middlewares";
+import ObjectStorage from "@lib/infra/objectstorage";
 
 
 async function createApp() {
@@ -25,7 +26,8 @@ async function createApp() {
     new BaseConfig(app);
     DB.initApp(app);
     Tokens.initApp(app);
-    await OCIQueues.initApp(app);
+    await Queues.initApp(app);
+    await ObjectStorage.initApp(app);
 
     app.set("trust proxy", true);
     app.use(express.json());
