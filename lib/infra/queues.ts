@@ -6,7 +6,7 @@ import * as queue from "oci-queue";
 
 type AuthMode = "instance_principal" | "config_file";
 
-export interface OCIQueuesConfig {
+export interface QueuesConfig {
     // Auth
     OCI_AUTH_MODE: AuthMode;
     OCI_REGION: string;
@@ -52,11 +52,11 @@ export interface DeleteOpts {
     channel?: string;
 }
 
-class OCIQueues {
-    private static instance: OCIQueues | null = null;
+class Queues {
+    private static instance: Queues | null = null;
     private static initialized = false;
 
-    private static config: OCIQueuesConfig = {
+    private static config: QueuesConfig = {
         OCI_AUTH_MODE: "instance_principal",
         OCI_REGION: "",
         OCI_QUEUE_MESSAGES_ENDPOINT: "",
@@ -72,58 +72,58 @@ class OCIQueues {
     private static logger = initLogger("info");
 
     public static async initApp(app: Express): Promise<void> {
-        const cfg = app.get("config") as Partial<OCIQueuesConfig>;
-        await OCIQueues.init(cfg);
+        const cfg = app.get("config") as Partial<QueuesConfig>;
+        await Queues.init(cfg);
     }
 
-    public static async init(cfg: Partial<OCIQueuesConfig>): Promise<void> {
-        OCIQueues.config = {
-            ...OCIQueues.config,
+    public static async init(cfg: Partial<QueuesConfig>): Promise<void> {
+        Queues.config = {
+            ...Queues.config,
             ...cfg,
-            OCI_QUEUE_MAX_RETRIES: cfg.OCI_QUEUE_MAX_RETRIES ?? OCIQueues.config.OCI_QUEUE_MAX_RETRIES ?? 3,
-            OCI_QUEUE_RETRY_BASE_MS: cfg.OCI_QUEUE_RETRY_BASE_MS ?? OCIQueues.config.OCI_QUEUE_RETRY_BASE_MS ?? 200,
+            OCI_QUEUE_MAX_RETRIES: cfg.OCI_QUEUE_MAX_RETRIES ?? Queues.config.OCI_QUEUE_MAX_RETRIES ?? 3,
+            OCI_QUEUE_RETRY_BASE_MS: cfg.OCI_QUEUE_RETRY_BASE_MS ?? Queues.config.OCI_QUEUE_RETRY_BASE_MS ?? 200,
         };
 
-        OCIQueues.logger = initLogger("info");
+        Queues.logger = initLogger("info");
 
-        if (!OCIQueues.config.OCI_QUEUE_MESSAGES_ENDPOINT) {
+        if (!Queues.config.OCI_QUEUE_MESSAGES_ENDPOINT) {
             throw new Error("OCI_QUEUE_MESSAGES_ENDPOINT is required (Queue Messages endpoint).");
         }
-        if (!OCIQueues.config.OCI_QUEUE_HIGH_ID) {
+        if (!Queues.config.OCI_QUEUE_HIGH_ID) {
             throw new Error("OCI_QUEUE_HIGH_ID is required.");
         }
-        if (!OCIQueues.config.OCI_QUEUE_BATCH_ID) {
+        if (!Queues.config.OCI_QUEUE_BATCH_ID) {
             throw new Error("OCI_QUEUE_BATCH_ID is required.");
         }
-        if (!OCIQueues.config.OCI_REGION) {
+        if (!Queues.config.OCI_REGION) {
             throw new Error("OCI_REGION is required.");
         }
 
-        if (!OCIQueues.client) {
-            const provider = await OCIQueues.buildAuthProvider(OCIQueues.config);
+        if (!Queues.client) {
+            const provider = await Queues.buildAuthProvider(Queues.config);
             const client = new queue.QueueClient({ authenticationDetailsProvider: provider });
 
             // Messages endpoint must be set explicitly
-            client.endpoint = OCIQueues.config.OCI_QUEUE_MESSAGES_ENDPOINT;
+            client.endpoint = Queues.config.OCI_QUEUE_MESSAGES_ENDPOINT;
 
-            OCIQueues.client = client;
+            Queues.client = client;
         }
 
-        OCIQueues.initialized = true;
-        OCIQueues.logger.info("OCIQueues initialized");
+        Queues.initialized = true;
+        Queues.logger.info("OCIQueues initialized");
     }
 
-    public static getInstance(): OCIQueues {
-        if (!OCIQueues.initialized) {
+    public static getInstance(): Queues {
+        if (!Queues.initialized) {
             throw new Error("OCIQueues not initialized. Call OCIQueues.initApp() or OCIQueues.init() first.");
         }
-        if (!OCIQueues.instance) OCIQueues.instance = new OCIQueues();
-        return OCIQueues.instance;
+        if (!Queues.instance) Queues.instance = new Queues();
+        return Queues.instance;
     }
 
     private constructor() {}
 
-    private static async buildAuthProvider(cfg: OCIQueuesConfig): Promise<common.AuthenticationDetailsProvider> {
+    private static async buildAuthProvider(cfg: QueuesConfig): Promise<common.AuthenticationDetailsProvider> {
         if (cfg.OCI_AUTH_MODE === "instance_principal") {
             return await new common.InstancePrincipalsAuthenticationDetailsProviderBuilder().build();
         }
@@ -133,8 +133,8 @@ class OCIQueues {
     }
 
     private getClient(): queue.QueueClient {
-        if (!OCIQueues.client) throw new Error("OCI Queue client not initialized.");
-        return OCIQueues.client;
+        if (!Queues.client) throw new Error("OCI Queue client not initialized.");
+        return Queues.client;
     }
 
     private stringifyErr(err: any): string {
@@ -145,8 +145,8 @@ class OCIQueues {
     }
 
     private async withRetries<T>(fn: () => Promise<T>, label: string): Promise<T> {
-        const maxRetries = OCIQueues.config.OCI_QUEUE_MAX_RETRIES ?? 3;
-        const baseMs = OCIQueues.config.OCI_QUEUE_RETRY_BASE_MS ?? 200;
+        const maxRetries = Queues.config.OCI_QUEUE_MAX_RETRIES ?? 3;
+        const baseMs = Queues.config.OCI_QUEUE_RETRY_BASE_MS ?? 200;
 
         let lastErr: any;
         for (let attempt = 0; attempt <= maxRetries; attempt++) {
@@ -156,7 +156,7 @@ class OCIQueues {
                 lastErr = err;
                 const isLast = attempt === maxRetries;
 
-                OCIQueues.logger.error(
+                Queues.logger.error(
                     `[OCIQueues] ${label} failed (attempt ${attempt + 1}/${maxRetries + 1}): ${this.stringifyErr(err)}`
                 );
 
@@ -172,15 +172,15 @@ class OCIQueues {
     // Public API: enqueue
     // ---------------------------
     public async enqueueHigh(messages: PutMessageInput[] | PutMessageInput, opts: EnqueueOpts = {}) {
-        return this.enqueueToQueue(OCIQueues.config.OCI_QUEUE_HIGH_ID, messages, {
-            channel: opts.channel ?? OCIQueues.config.OCI_QUEUE_HIGH_CHANNEL,
+        return this.enqueueToQueue(Queues.config.OCI_QUEUE_HIGH_ID, messages, {
+            channel: opts.channel ?? Queues.config.OCI_QUEUE_HIGH_CHANNEL,
             queueName: "high",
         });
     }
 
     public async enqueueBatch(messages: PutMessageInput[] | PutMessageInput, opts: EnqueueOpts = {}) {
-        return this.enqueueToQueue(OCIQueues.config.OCI_QUEUE_BATCH_ID, messages, {
-            channel: opts.channel ?? OCIQueues.config.OCI_QUEUE_BATCH_CHANNEL,
+        return this.enqueueToQueue(Queues.config.OCI_QUEUE_BATCH_ID, messages, {
+            channel: opts.channel ?? Queues.config.OCI_QUEUE_BATCH_CHANNEL,
             queueName: "batch",
         });
     }
@@ -201,7 +201,7 @@ class OCIQueues {
         return this.withRetries(
             async () => {
                 const resp = await client.putMessages({ queueId, putMessagesDetails } as any);
-                OCIQueues.logger.info(
+                Queues.logger.info(
                     `[OCIQueues] enqueue ok target=${meta.queueName} queueId=${queueId} count=${arr.length}${meta.channel ? ` channel=${meta.channel}` : ""}`
                 );
                 return resp;
@@ -215,11 +215,11 @@ class OCIQueues {
     // Production consume should be Connector Hub -> Functions.
     // ---------------------------
     public async dequeueHigh(opts: DequeueOpts = {}) {
-        return this.dequeueFromQueue(OCIQueues.config.OCI_QUEUE_HIGH_ID, opts, "high");
+        return this.dequeueFromQueue(Queues.config.OCI_QUEUE_HIGH_ID, opts, "high");
     }
 
     public async dequeueBatch(opts: DequeueOpts = {}) {
-        return this.dequeueFromQueue(OCIQueues.config.OCI_QUEUE_BATCH_ID, opts, "batch");
+        return this.dequeueFromQueue(Queues.config.OCI_QUEUE_BATCH_ID, opts, "batch");
     }
 
     private async dequeueFromQueue(queueId: string, opts: DequeueOpts, queueName: "high" | "batch") {
@@ -240,7 +240,7 @@ class OCIQueues {
                     ...(channel ? { channel } : {}),
                 } as any);
 
-                OCIQueues.logger.info(
+                Queues.logger.info(
                     `[OCIQueues] dequeue ok target=${queueName} queueId=${queueId} limit=${limit}${channel ? ` channel=${channel}` : ""}`
                 );
                 return resp;
@@ -250,11 +250,11 @@ class OCIQueues {
     }
 
     public async deleteHigh(receipts: string[] | string, opts: DeleteOpts = {}) {
-        return this.deleteFromQueue(OCIQueues.config.OCI_QUEUE_HIGH_ID, receipts, opts, "high");
+        return this.deleteFromQueue(Queues.config.OCI_QUEUE_HIGH_ID, receipts, opts, "high");
     }
 
     public async deleteBatch(receipts: string[] | string, opts: DeleteOpts = {}) {
-        return this.deleteFromQueue(OCIQueues.config.OCI_QUEUE_BATCH_ID, receipts, opts, "batch");
+        return this.deleteFromQueue(Queues.config.OCI_QUEUE_BATCH_ID, receipts, opts, "batch");
     }
 
     private async deleteFromQueue(
@@ -276,7 +276,7 @@ class OCIQueues {
         return this.withRetries(
             async () => {
                 const resp = await client.deleteMessages({ queueId, deleteMessagesDetails } as any);
-                OCIQueues.logger.info(
+                Queues.logger.info(
                     `[OCIQueues] delete ok target=${queueName} queueId=${queueId} count=${arr.length}${channel ? ` channel=${channel}` : ""}`
                 );
                 return resp;
@@ -286,4 +286,4 @@ class OCIQueues {
     }
 }
 
-export default OCIQueues;
+export default Queues;
