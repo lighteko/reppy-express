@@ -14,6 +14,22 @@ abstract class BaseController {
     protected service = new UserService();
 }
 
+export class UserOnboardingController extends BaseController {
+    get = async (req: Request, res: Response) => {
+        try {
+            const userId = (req as any).user.userId;
+            const response = await this.service.getUserOnboardingStatus(userId);
+            send(res, 200, { ...response });
+        } catch (e: unknown) {
+            if (e instanceof ValidationError) {
+                abort(res, 400, String(e));
+            } else {
+                abort(res, 500, String(e));
+            }
+        }
+    }
+}
+
 export class UserEquipmentsController extends BaseController {
     get = async (req: Request, res: Response) => {
         try {

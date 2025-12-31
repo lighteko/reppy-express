@@ -1,4 +1,4 @@
-import DB, { Row } from "@lib/infra/postgres";
+import DB from "@lib/infra/postgres";
 import SQL from "sql-template-strings";
 import { GetUserEquipmentCodesDTO, GetUserExerciseCodesDTO, UpdateUserEquipmentsDTO } from "@src/users/dto/dto";
 
@@ -68,5 +68,14 @@ export class UserDAO {
 
         const cursor = this.db.cursor();
         return await cursor.fetchAll(query);
+    }
+
+    async getUserOnboardingStatus(userId: string) {
+        const query = SQL`
+            SELECT is_onboarded FROM repy_user_l
+            WHERE user_id = ${userId};
+        `;
+        const cursor = this.db.cursor();
+        return await cursor.fetchOne(query);
     }
 }

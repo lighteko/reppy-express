@@ -19,4 +19,8 @@ export class UserService {
     async getUserExerciseCodes(inputData: GetUserExerciseCodesDTO) {
         await this.dao.getUserExerciseCodes(inputData);
     }
+
+    async getUserOnboardingStatus(userId: string) {
+        return await this.dao.getUserOnboardingStatus(userId);
+    }
 }
