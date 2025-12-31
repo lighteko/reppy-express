@@ -5,7 +5,7 @@ export const EquipmentType = z.enum(["FREE_WEIGHTS", "BENCHES", "STRETCH", "MACH
 
 export const GetFilteredEquipmentsSchema = z.object({
     locale: zodLocale,
-    types_to_exclude: z.array(EquipmentType),
+    typesToExclude: z.array(EquipmentType),
 });
 
 const EquipmentsSchema = z.object({
@@ -20,5 +20,20 @@ export const GetFilteredEquipmentsResponseSchema = z.object({
     equipments: z.array(EquipmentsSchema)
 });
 
+const EquipmentPresetsSchema = z.object({
+    presetCode: z.string(),
+    equipments: z.array(EquipmentsSchema)
+})
+
+export const GetEquipmentPresetsSchema = z.object({
+    locale: zodLocale,
+})
+
+export const GetEquipmentPresetsResponseSchema = z.object({
+    presets: z.array(EquipmentPresetsSchema),
+})
+
 export type GetFilteredEquipmentsDTO = z.infer<typeof GetFilteredEquipmentsSchema>;
 export type GetFilteredEquipmentsResponseDTO = z.infer<typeof GetFilteredEquipmentsResponseSchema>;
+export type GetEquipmentPresetsDTO = z.infer<typeof GetEquipmentPresetsSchema>;
+export type GetEquipmentPresetsResponseDTO = z.infer<typeof GetEquipmentPresetsResponseSchema>;

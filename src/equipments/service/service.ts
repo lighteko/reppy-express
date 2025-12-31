@@ -1,5 +1,7 @@
 import { EquipmentDAO } from "@src/equipments/dao/dao";
 import {
+    GetEquipmentPresetsDTO,
+    GetEquipmentPresetsResponseDTO, GetEquipmentPresetsResponseSchema,
     GetFilteredEquipmentsDTO,
     GetFilteredEquipmentsResponseDTO,
     GetFilteredEquipmentsResponseSchema,
@@ -16,5 +18,10 @@ export class EquipmentService {
     async getFilteredEquipments(inputData: GetFilteredEquipmentsDTO): Promise<GetFilteredEquipmentsResponseDTO> {
         const response = await this.dao.getFilteredEquipments(inputData);
         return validateInput(GetFilteredEquipmentsResponseSchema, { equipments: [...response] });
+    }
+
+    async getEquipmentPresets(inputData: GetEquipmentPresetsDTO): Promise<GetEquipmentPresetsResponseDTO> {
+        const response = await this.dao.getEquipmentPresets(inputData);
+        return validateInput(GetEquipmentPresetsResponseSchema, { presets: [...response] });
     }
 }
