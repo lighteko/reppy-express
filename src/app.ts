@@ -6,6 +6,7 @@ import initLogger from "@src/logger";
 import DB from "@lib/infra/postgres";
 import Tokens from "@lib/infra/tokens";
 import Queues from "@lib/infra/queues";
+import ObjectStorage from "@lib/infra/objectstorage";
 
 import authRouter from "@src/auth/routes";
 import onboardingRouter from "@src/onboarding/routes";
@@ -17,7 +18,6 @@ import chatRouter from "@src/chats/routes";
 import userRouter from "@src/users/routes";
 import equipmentsRouter from "@src/equipments/router";
 import { authenticate } from "@src/middlewares";
-import ObjectStorage from "@lib/infra/objectstorage";
 
 
 async function createApp() {

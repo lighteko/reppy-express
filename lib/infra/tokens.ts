@@ -31,11 +31,15 @@ class Tokens {
     private static initialized = false;
 
     public static initApp(app: Express): void {
+        this.init(app.get("config"))
+    }
+
+    public static init(cfg: object): void {
         const {
             JWT_ACCESS_SECRET,
             JWT_ACCESS_EXPIRY,
             EMAIL_TOKEN_SECRET,
-        } = app.get("config");
+        } = cfg as any;
 
         Tokens.config.JWT_ACCESS_SECRET =
             JWT_ACCESS_SECRET || Tokens.config.JWT_ACCESS_SECRET;

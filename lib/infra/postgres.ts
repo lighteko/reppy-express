@@ -31,6 +31,10 @@ class DB {
     private static initialized = false;
 
     public static initApp(app: Express): void {
+        this.init(app.get("config"))
+    }
+
+    public static init(cfg: any): void {
         const {
             PG_HOST,
             PG_PORT,
@@ -39,7 +43,7 @@ class DB {
             PG_DB,
             PG_POOL_SIZE,
             PG_SCHEMA,
-        } = app.get("config");
+        } = cfg as any;
 
         DB.config = {
             PG_HOST,

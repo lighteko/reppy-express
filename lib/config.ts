@@ -22,6 +22,7 @@ export class BaseConfig {
     static OCI_QUEUE_MESSAGES_ENDPOINT = process.env.OCI_QUEUE_MESSAGES_ENDPOINT || "";
     static OCI_QUEUE_HIGH_ID = process.env.OCI_QUEUE_HIGH_ID || "";
     static OCI_QUEUE_BATCH_ID = process.env.OCI_QUEUE_BATCH_ID || "";
+    static OCI_QUEUE_RESULT_ID = process.env.OCI_QUEUE_RESULT_ID || "";
     static OCI_QUEUE_MAX_RETRIES = process.env.OCI_QUEUE_MAX_RETRIES || "";
     static OCI_QUEUE_RETRY_BASE_MS = process.env.OCI_QUEUE_RETRY_BASE_MS || "";
     static OCI_OBJECT_STORAGE_NAMESPACE = process.env.OCI_OBJECT_STORAGE_NAMESPACE || "";
@@ -33,8 +34,8 @@ export class BaseConfig {
         BaseConfig.initApp(app);
     }
 
-    static initApp(app: Express): void {
-        app.set("config", {
+    static init(): object {
+        return {
             PG_HOST: this.PG_HOST,
             PG_PORT: this.PG_PORT,
             PG_USER: this.PG_USER,
@@ -49,15 +50,32 @@ export class BaseConfig {
             OCI_AUTH_MODE: this.OCI_AUTH_MODE,
             OCI_REGION: this.OCI_REGION,
             OCI_QUEUE_MESSAGES_ENDPOINT: this.OCI_QUEUE_MESSAGES_ENDPOINT,
-            OCI_QUEUE_HIGH_ID: this.OCI_QUEUE_HIGH_ID,
-            OCI_QUEUE_BATCH_ID: this.OCI_QUEUE_BATCH_ID,
             OCI_QUEUE_MAX_RETRIES: this.OCI_QUEUE_MAX_RETRIES,
             OCI_QUEUE_RETRY_BASE_MS: this.OCI_QUEUE_RETRY_BASE_MS,
             OCI_OBJECT_STORAGE_NAMESPACE: this.OCI_OBJECT_STORAGE_NAMESPACE,
             OCI_OBJECT_STORAGE_BUCKET: this.OCI_OBJECT_STORAGE_BUCKET,
             OCI_OS_MAX_RETRIES: this.OCI_OS_MAX_RETRIES,
             OCI_OS_RETRY_BASE_MS: this.OCI_OS_RETRY_BASE_MS,
-        });
+            QUEUES: {
+                high: {
+                    queueId: this.OCI_QUEUE_HIGH_ID,
+                    name: "high"
+                },
+                batch: {
+                    queueId: this.OCI_QUEUE_BATCH_ID,
+                    name: "batch"
+                },
+                result: {
+                    queueId: this.OCI_QUEUE_RESULT_ID,
+                    name: "result"
+                }
+            }
+        };
+    }
+
+    static initApp(app: Express): void {
+        const cfg = this.init();
+        app.set("config", cfg);
 
         console.log("App configuration initialized.");
     }
