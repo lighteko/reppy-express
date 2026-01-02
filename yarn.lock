@@ -1277,6 +1277,14 @@ oci-queue@^2.122.2:
     oci-common "2.122.2"
     oci-workrequests "2.122.2"
 
+oci-streaming@^2.122.2:
+  version "2.122.2"
+  resolved "https://registry.yarnpkg.com/oci-streaming/-/oci-streaming-2.122.2.tgz#b2a917aa4566c15cca55acaa448d133744f77002"
+  integrity sha512-TqtAK/slksggnBXkcBRSSKHNG7nsksvMm8647fsrq7K6j2CE/0zLhnh0o7ztlAvrJTXdcTpDjr5XEC99NvZz0Q==
+  dependencies:
+    oci-common "2.122.2"
+    oci-workrequests "2.122.2"
+
 oci-workrequests@2.122.2:
   version "2.122.2"
   resolved "https://registry.yarnpkg.com/oci-workrequests/-/oci-workrequests-2.122.2.tgz#05bf6770416e3037b77c03e6991b5c0001389221"
