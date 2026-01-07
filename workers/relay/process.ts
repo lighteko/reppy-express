@@ -1,6 +1,6 @@
-import initLogger from "@src/logger";
-import Streaming from "@lib/infra/streaming";
-import { handler } from "@src/workers/relay/handler";
+import initLogger from "src/logger";
+import Streaming from "lib/infra/streaming";
+import { handler } from "workers/relay/handler";
 
 function sleep(ms: number) {
     return new Promise((r) => setTimeout(r, ms));

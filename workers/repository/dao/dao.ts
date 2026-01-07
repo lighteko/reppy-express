@@ -1,4 +1,4 @@
-import DB from "@lib/infra/postgres";
+import DB from "lib/infra/postgres";
 import SQL from "sql-template-strings";
 
 export class WorkerDAO {

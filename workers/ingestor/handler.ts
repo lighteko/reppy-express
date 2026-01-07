@@ -1,9 +1,9 @@
-import { validateInput } from "@lib/validate";
-import ObjectStorage from "@lib/infra/objectstorage";
-import { RoutinesDAO } from "@src/routines/dao/dao";
-import { CreateBatchRoutinesSchema, CreateRoutineSchema } from "@src/routines/dto/dto";
-import { EventSchema } from "@src/workers/repository/dto/dto";
-import { WorkerService } from "@src/workers/repository/service/service";
+import { validateInput } from "lib/validate";
+import ObjectStorage from "lib/infra/objectstorage";
+import { RoutinesDAO } from "src/routines/dao/dao";
+import { CreateBatchRoutinesSchema, CreateRoutineSchema } from "src/routines/dto/dto";
+import { EventSchema } from "workers/repository/dto/dto";
+import { WorkerService } from "workers/repository/service/service";
 
 export async function handler(parsed: any, service: WorkerService, dao: RoutinesDAO) {
     const storage = ObjectStorage.getInstance();

@@ -44,6 +44,8 @@
   },
   "scripts": {
     "start": "node dist/main.js",
+    "worker:ingestor": "node dist/workers/ingestor/entry.js",
+    "worker:relay": "node dist/workers/ingestor/entry.js",
     "build": "tsc -p . && yarn clean-path",
     "clean-path": "tsc-alias",
     "dev": "nodemon --watch \"src/**/*.ts\" --exec \"tsx\" ./main.ts"

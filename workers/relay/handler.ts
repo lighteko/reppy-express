@@ -1,4 +1,4 @@
-import initLogger from "@src/logger";
+import initLogger from "src/logger";
 
 type RelayEvent = {
     requestId: string;

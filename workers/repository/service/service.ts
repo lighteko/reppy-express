@@ -1,4 +1,4 @@
-import { WorkerDAO } from "@src/workers/repository/dao/dao";
+import { WorkerDAO } from "workers/repository/dao/dao";
 
 export class WorkerService {
     private dao: WorkerDAO;

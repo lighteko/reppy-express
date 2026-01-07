@@ -1,10 +1,10 @@
-import { BaseConfig } from "@lib/config";
-import DB from "@lib/infra/postgres";
-import Tokens from "@lib/infra/tokens";
-import ObjectStorage from "@lib/infra/objectstorage";
-import initLogger from "@src/logger";
-import Streaming from "@lib/infra/streaming";
-import { runRelay } from "@src/workers/relay/process";
+import { BaseConfig } from "lib/config";
+import DB from "lib/infra/postgres";
+import Tokens from "lib/infra/tokens";
+import ObjectStorage from "lib/infra/objectstorage";
+import initLogger from "src/logger";
+import Streaming from "lib/infra/streaming";
+import { runRelay } from "workers/relay/process";
 
 async function main() {
     const logger = initLogger("debug");

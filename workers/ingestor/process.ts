@@ -1,8 +1,8 @@
-import initLogger from "@src/logger";
-import Queues from "@lib/infra/queues";
-import { handler } from "@src/workers/ingestor/handler";
-import { RoutinesDAO } from "@src/routines/dao/dao";
-import { WorkerService } from "@src/workers/repository/service/service";
+import initLogger from "src/logger";
+import Queues from "lib/infra/queues";
+import { handler } from "workers/ingestor/handler";
+import { RoutinesDAO } from "src/routines/dao/dao";
+import { WorkerService } from "workers/repository/service/service";
 
 // oci-queue sdk 응답이 버전/타입에 따라 달라서 안전하게 파싱
 function extractMessages(resp: any): any[] {

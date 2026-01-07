@@ -1,10 +1,10 @@
-import { BaseConfig } from "@lib/config";
-import DB from "@lib/infra/postgres";
-import Tokens from "@lib/infra/tokens";
-import Queues from "@lib/infra/queues";
-import ObjectStorage from "@lib/infra/objectstorage";
-import { runIngestor } from "@src/workers/ingestor/process";
-import initLogger from "@src/logger";
+import { BaseConfig } from "lib/config";
+import DB from "lib/infra/postgres";
+import Tokens from "lib/infra/tokens";
+import Queues from "lib/infra/queues";
+import ObjectStorage from "lib/infra/objectstorage";
+import { runIngestor } from "workers/ingestor/process";
+import initLogger from "src/logger";
 
 
 async function main() {
