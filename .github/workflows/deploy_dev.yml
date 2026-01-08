@@ -59,8 +59,8 @@ jobs:
             echo "${{ secrets.OCIR_AUTH_TOKEN }}" | docker login "${{ secrets.OCIR_REGISTRY }}" \
               -u "${{ secrets.OCIR_USERNAME }}" --password-stdin
 
-            docker compose pull reppy_dev
-            docker compose up -d --no-deps reppy_dev
+            docker compose --profile dev pull
+            docker compose --profile dev up -d
             docker image prune -f
       - name: Health Check
         shell: bash
