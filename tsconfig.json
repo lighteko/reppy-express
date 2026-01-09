@@ -17,13 +17,14 @@
     "baseUrl": "./",
     "paths": {
       "@lib/*": ["lib/*"],
-      "@src/*": ["src/*"]
+      "@src/*": ["src/*"],
+      "@workers/*": ["workers/*"],
     },
     "outDir": "./dist",
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true
   },
-  "include": ["src/**/*.ts", "main.ts", "lib/**/*.ts", "public/**/*.*"],
+  "include": ["src/**/*.ts", "main.ts", "lib/**/*.ts", "public/**/*.*", "workers/**/*.ts"],
   "exclude": ["node_modules"],
   "tsc-alias": {
     "resolveFullPaths": true
